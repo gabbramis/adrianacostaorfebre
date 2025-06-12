@@ -103,7 +103,7 @@ export default function ContactPage() {
     },
   ];
 
-  const _preguntasFrecuentes = [
+  const preguntasFrecuentes = [
     {
       question: "¿Realizan trabajos personalizados?",
       answer:
@@ -135,6 +135,8 @@ export default function ContactPage() {
         "Por supuesto. Podés agendar una cita en nuestro taller para ver las piezas en persona y conocer nuestro proceso de trabajo.",
     },
   ];
+
+  console.log(preguntasFrecuentes);
 
   const services = [
     {
