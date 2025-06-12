@@ -103,7 +103,7 @@ export default function ContactPage() {
     },
   ];
 
-  const preguntasFrecuentes = [
+  const _preguntasFrecuentes = [
     {
       question: "¿Realizan trabajos personalizados?",
       answer:
