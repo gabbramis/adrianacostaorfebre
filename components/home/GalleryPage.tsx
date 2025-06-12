@@ -27,7 +27,6 @@ import {
   SlidersHorizontal,
   Star,
   X,
-  ZoomIn,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";

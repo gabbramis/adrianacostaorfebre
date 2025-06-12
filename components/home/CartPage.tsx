@@ -348,7 +348,7 @@ export default function CartPage() {
 
                     {promoApplied && (
                       <div className="flex justify-between text-green-600">
-                        <span>Descuento "BIENVENIDO"</span>
+                        <span>Descuento BIENVENIDO</span>
                         <span>-{formatPrice(getTotalPrice() * 0.1)}</span>
                       </div>
                     )}
