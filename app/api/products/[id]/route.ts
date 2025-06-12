@@ -31,16 +31,16 @@ export const POST = async (req: NextRequest) => {
     if (error) {
       console.error("Error creating product in database:", error);
       return NextResponse.json(
-        { message: "Error creating product", error: error.message },
+        { message: "Error creating product" },
         { status: 500 }
       );
     }
 
     return NextResponse.json(data, { status: 201 });
-  } catch (err: any) {
+  } catch (err) {
     console.error("Unexpected error in POST /api/products/create:", err);
     return NextResponse.json(
-      { message: "Internal Server Error", error: err.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -66,16 +66,16 @@ export const DELETE = async (
     if (error) {
       console.error("Error deleting product from database:", error);
       return NextResponse.json(
-        { message: "Error deleting product", error: error.message },
+        { message: "Error deleting product" },
         { status: 500 }
       );
     }
 
     return new NextResponse(null, { status: 204 });
-  } catch (err: any) {
+  } catch (err) {
     console.error("Unexpected error in DELETE /api/products/[id]:", err);
     return NextResponse.json(
-      { message: "Internal Server Error", error: err.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -108,16 +108,16 @@ export const PATCH = async (
     if (error) {
       console.error("Error updating product in database:", error);
       return NextResponse.json(
-        { message: "Error updating product", error: error.message },
+        { message: "Error updating product" },
         { status: 500 }
       );
     }
 
     return NextResponse.json(data, { status: 200 });
-  } catch (err: any) {
+  } catch (err) {
     console.error("Unexpected error in PATCH /api/products/[id]:", err);
     return NextResponse.json(
-      { message: "Internal Server Error", error: err.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

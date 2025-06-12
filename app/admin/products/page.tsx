@@ -61,7 +61,7 @@ export default function Home() {
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorMessage;
-        } catch (jsonError) {
+        } catch {
           const textError = await response.text();
           errorMessage = textError || errorMessage;
         }

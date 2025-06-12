@@ -1,34 +1,46 @@
+"use client";
 
-"use client"
+import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
-import { useState } from "react"
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-
-// Tipos de datos
 interface Cliente {
-  nombre: string
-  email: string
-  telefono: string
-  direccion: string
+  nombre: string;
+  email: string;
+  telefono: string;
+  direccion: string;
 }
 
 interface ProductoPedido {
-  id: string
-  nombre: string
-  precio: string
-  cantidad: number
+  id: string;
+  nombre: string;
+  precio: string;
+  cantidad: number;
 }
 
 interface Pedido {
-  id: string
-  fecha: Date
-  cliente: Cliente
-  productos: ProductoPedido[]
-  estado: "pendiente" | "procesando" | "enviado" | "entregado" | "cancelado"
-  total: number
+  id: string;
+  fecha: Date;
+  cliente: Cliente;
+  productos: ProductoPedido[];
+  estado: "pendiente" | "procesando" | "enviado" | "entregado" | "cancelado";
+  total: number;
 }
 
 // Datos de ejemplo
@@ -99,7 +111,7 @@ const pedidosIniciales: Pedido[] = [
     estado: "enviado",
     total: 850,
   },
-]
+];
 
 // Mapeo de estados a colores
 const estadoColores = {
@@ -108,30 +120,37 @@ const estadoColores = {
   enviado: "bg-purple-100 text-purple-800",
   entregado: "bg-green-100 text-green-800",
   cancelado: "bg-red-100 text-red-800",
-}
+};
 
 export default function PedidosPage() {
-  const [pedidos, setPedidos] = useState<Pedido[]>(pedidosIniciales)
+  const [pedidos, setPedidos] = useState<Pedido[]>(pedidosIniciales);
 
-  const cambiarEstadoPedido = (pedidoId: string, nuevoEstado: Pedido["estado"]) => {
+  const cambiarEstadoPedido = (
+    pedidoId: string,
+    nuevoEstado: Pedido["estado"]
+  ) => {
     setPedidos((pedidosActuales) =>
-      pedidosActuales.map((pedido) => (pedido.id === pedidoId ? { ...pedido, estado: nuevoEstado } : pedido)),
-    )
-  }
+      pedidosActuales.map((pedido) =>
+        pedido.id === pedidoId ? { ...pedido, estado: nuevoEstado } : pedido
+      )
+    );
+  };
 
   const formatearFecha = (fecha: Date) => {
     return fecha.toLocaleDateString("es-UY", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-    })
-  }
+    });
+  };
 
   return (
     <main className="container mx-auto p-4">
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Gestión de Pedidos</h1>
-        <p className="text-gray-500">Administra y actualiza el estado de los pedidos</p>
+        <p className="text-gray-500">
+          Administra y actualiza el estado de los pedidos
+        </p>
       </div>
 
       <Card className="overflow-hidden">
@@ -156,30 +175,44 @@ export default function PedidosPage() {
                 <TableCell>
                   <div>
                     <div className="font-medium">{pedido.cliente.nombre}</div>
-                    <div className="text-sm text-gray-500">{pedido.cliente.email}</div>
-                    <div className="text-sm text-gray-500">{pedido.cliente.telefono}</div>
+                    <div className="text-sm text-gray-500">
+                      {pedido.cliente.email}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {pedido.cliente.telefono}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="max-w-[250px]">
-                    {pedido.productos.map((producto, index) => (
+                    {pedido.productos.map((producto) => (
                       <div key={producto.id} className="text-sm mb-1">
                         {producto.cantidad}x {producto.nombre}
-                        <span className="text-gray-500 ml-1">(${producto.precio})</span>
+                        <span className="text-gray-500 ml-1">
+                          (${producto.precio})
+                        </span>
                       </div>
                     ))}
                   </div>
                 </TableCell>
-                <TableCell className="text-right font-medium">${pedido.total.toLocaleString("es-UY")}</TableCell>
+                <TableCell className="text-right font-medium">
+                  ${pedido.total.toLocaleString("es-UY")}
+                </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={estadoColores[pedido.estado]}>
-                    {pedido.estado.charAt(0).toUpperCase() + pedido.estado.slice(1)}
+                  <Badge
+                    variant="outline"
+                    className={estadoColores[pedido.estado]}
+                  >
+                    {pedido.estado.charAt(0).toUpperCase() +
+                      pedido.estado.slice(1)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <Select
                     defaultValue={pedido.estado}
-                    onValueChange={(valor) => cambiarEstadoPedido(pedido.id, valor as Pedido["estado"])}
+                    onValueChange={(valor) =>
+                      cambiarEstadoPedido(pedido.id, valor as Pedido["estado"])
+                    }
                   >
                     <SelectTrigger className="w-[130px]">
                       <SelectValue placeholder="Cambiar estado" />
@@ -199,5 +232,5 @@ export default function PedidosPage() {
         </Table>
       </Card>
     </main>
-  )
+  );
 }

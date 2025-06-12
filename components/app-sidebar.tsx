@@ -6,7 +6,6 @@ import {
   IconPackage,
   IconMail,
   IconDiamond,
-  IconMailBitcoin,
   IconBrandSupernova,
 } from "@tabler/icons-react";
 
