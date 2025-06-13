@@ -4,7 +4,7 @@ import { createSupabaseServer } from "@/utils/supabase/server";
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   const { id } = params;
 
   if (!id) {
