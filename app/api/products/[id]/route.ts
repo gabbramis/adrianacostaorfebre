@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServer } from "@/utils/supabase/server";
 
-export const POST = async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
   const { name, price, description, category, image, stock, is_posted } =
     await req.json();
 
@@ -44,12 +44,12 @@ export const POST = async (req: NextRequest) => {
       { status: 500 }
     );
   }
-};
+}
 
-export const DELETE = async (
+export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
-) => {
+) {
   const { id } = params;
 
   if (!id) {
@@ -79,12 +79,12 @@ export const DELETE = async (
       { status: 500 }
     );
   }
-};
+}
 
-export const PATCH = async (
+export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
-) => {
+) {
   const { id } = params;
 
   if (!id) {
@@ -121,4 +121,4 @@ export const PATCH = async (
       { status: 500 }
     );
   }
-};
+}
