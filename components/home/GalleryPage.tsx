@@ -222,7 +222,7 @@ export default function GalleryPage() {
       id: Number(product.id),
       name: product.name,
       price: product.price,
-      image: product.image,
+      imageSrc: product.image || "",
       category: product.category,
       materials: product.materials || [],
     });
