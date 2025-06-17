@@ -5,7 +5,7 @@ export default function AboutSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="relative h-[500px] rounded-lg overflow-hidden">
             <img
-              src="/adriana-taller.jpg"
+              src="/adriana-foto.jpg"
               alt="Adriana Costa Orfebre en su taller"
               className="object-cover"
             />
