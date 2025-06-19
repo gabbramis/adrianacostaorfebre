@@ -7,37 +7,29 @@ export default function ProductSection() {
     <section id="colecciones" className="py-20">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-serif text-center mb-12">
-          Explora Nuestras Colecciones
+          Explora Nuestros Productos
           {/* REEMPLAZAR ESTE TEXTO con el título de tu sección de colecciones */}
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Colección 1 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="border-0 shadow-lg overflow-hidden">
-            <div className="relative h-80">
-              {/* REEMPLAZAR ESTA IMAGEN con una imagen de producto o colección */}
+            <div className="relative aspect-square p-4">
               <img
                 src="/producto-1.jpg"
-                alt="Colección Naturaleza"
-                /* REEMPLAZAR ESTE ALT TEXT con una descripción relevante */
-                className="object-cover transition-transform hover:scale-105 duration-500"
+                alt="Plata Reticulada Ring"
+                className="object-contain w-full h-full transition-transform hover:scale-105 duration-500 shadow-sm"
               />
             </div>
-            <CardContent className="pt-6">
-              <h3 className="text-xl font-medium mb-2">
-                Colección Naturaleza
-                {/* REEMPLAZAR ESTE TEXTO con el nombre de la colección */}
-              </h3>
-              <p className="text-gray-600 mb-4">
+            <CardContent className="pt-3 pb-2 px-4">
+              <h3 className="text-lg font-medium mb-1">Colección Naturaleza</h3>
+              <p className="text-sm text-gray-600 mb-3">
                 Inspirada en las formas orgánicas y la belleza de la naturaleza
                 uruguaya.
-                {/* REEMPLAZAR ESTE TEXTO con la descripción de la colección */}
               </p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="px-4 pb-4 pt-0">
               <Link href="#" className="w-full">
-                {/* REEMPLAZAR ESTE ENLACE con la URL real de la página de colección */}
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full text-sm py-2">
                   Ver Colección
                 </Button>
               </Link>
@@ -46,30 +38,23 @@ export default function ProductSection() {
 
           {/* Colección 2 */}
           <Card className="border-0 shadow-lg overflow-hidden">
-            <div className="relative h-80">
-              {/* REEMPLAZAR ESTA IMAGEN con una imagen de producto o colección */}
+            <div className="relative aspect-square p-4">
               <img
-                src="/producto-5.jpg"
-                alt="Colección Geometría"
-                /* REEMPLAZAR ESTE ALT TEXT con una descripción relevante */
-                className=" object-cover transition-transform hover:scale-105 duration-500"
+                src="/producto-1.jpg"
+                alt="Plata Reticulada Ring"
+                className="object-contain w-full h-full transition-transform hover:scale-105 duration-500 shadow-sm"
               />
             </div>
-            <CardContent className="pt-6">
-              <h3 className="text-xl font-medium mb-2">
-                Colección Geometría
-                {/* REEMPLAZAR ESTE TEXTO con el nombre de la colección */}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Diseños minimalistas con líneas limpias y formas geométricas
-                precisas.
-                {/* REEMPLAZAR ESTE TEXTO con la descripción de la colección */}
+            <CardContent className="pt-3 pb-2 px-4">
+              <h3 className="text-lg font-medium mb-1">Colección Naturaleza</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Inspirada en las formas orgánicas y la belleza de la naturaleza
+                uruguaya.
               </p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="px-4 pb-4 pt-0">
               <Link href="#" className="w-full">
-                {/* REEMPLAZAR ESTE ENLACE con la URL real de la página de colección */}
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full text-sm py-2">
                   Ver Colección
                 </Button>
               </Link>
@@ -78,30 +63,23 @@ export default function ProductSection() {
 
           {/* Colección 3 */}
           <Card className="border-0 shadow-lg overflow-hidden">
-            <div className="relative h-80">
-              {/* REEMPLAZAR ESTA IMAGEN con una imagen de producto o colección */}
+            <div className="relative aspect-square p-4">
               <img
-                src="/producto-6.jpg"
-                alt="Colección Texturas"
-                /* REEMPLAZAR ESTE ALT TEXT con una descripción relevante */
-                className="object-cover transition-transform hover:scale-105 duration-500"
+                src="/producto-1.jpg"
+                alt="Plata Reticulada Ring"
+                className="object-contain w-full h-full transition-transform hover:scale-105 duration-500 shadow-sm"
               />
             </div>
-            <CardContent className="pt-6">
-              <h3 className="text-xl font-medium mb-2">
-                Colección Texturas
-                {/* REEMPLAZAR ESTE TEXTO con el nombre de la colección */}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Piezas con superficies ricas en texturas que juegan con la luz y
-                las sombras.
-                {/* REEMPLAZAR ESTE TEXTO con la descripción de la colección */}
+            <CardContent className="pt-3 pb-2 px-4">
+              <h3 className="text-lg font-medium mb-1">Colección Naturaleza</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Inspirada en las formas orgánicas y la belleza de la naturaleza
+                uruguaya.
               </p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="px-4 pb-4 pt-0">
               <Link href="#" className="w-full">
-                {/* REEMPLAZAR ESTE ENLACE con la URL real de la página de colección */}
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full text-sm py-2">
                   Ver Colección
                 </Button>
               </Link>
