@@ -72,7 +72,7 @@ export default function SiteHeader() {
             {" "}
             {/* Add relative and define size here */}
             <Image
-              src="/logo.png"
+              src="/logo-header.png"
               alt="Logo de Adrianacostaorfebre"
               fill={true}
               style={{ objectFit: "contain" }}
