@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Producto } from "@/app/admin/products/page"; // Importa la interfaz Producto
-import ImageUploader from "./SubirImagen";
+import ImageUploader from "./SubirImagen"; // Importa tu componente SubirImagen
 import { Checkbox } from "../ui/checkbox";
 
 interface CrearOEditarProductoDialogProps {
@@ -41,27 +41,26 @@ export default function CrearOEditarProductoDialog({
   onOpenChange,
   productoInicial,
 }: CrearOEditarProductoDialogProps) {
-  const [imagenUrl, setImagenUrl] = useState<string | null>(null);
+  const [imagenUrls, setImagenUrls] = useState<string[]>([]);
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [categoria, setCategoria] = useState("");
   const [stock, setStock] = useState("0");
   const [publicado, setPublicado] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Para el envío del formulario principal
   const [formError, setFormError] = useState<string | null>(null);
 
   // Efecto para inicializar el formulario cuando se abre o cambia el producto inicial
   useEffect(() => {
     if (open && productoInicial) {
-      // Si el diálogo se abre en modo edición (productoInicial no es null)
       setNombre(productoInicial.name);
       setPrecio(productoInicial.price.toString());
       setDescripcion(productoInicial.description || "");
       setCategoria(productoInicial.category);
       setStock(productoInicial.stock?.toString() || "0");
       setPublicado(productoInicial.is_posted);
-      setImagenUrl(productoInicial.image || null); // Carga la URL de imagen existente
+      setImagenUrls(productoInicial.image ? productoInicial.image : []); // Carga la URL de imagen existente
     } else if (!open) {
       // Si el diálogo se cierra, resetea el formulario
       resetearFormulario();
@@ -73,27 +72,32 @@ export default function CrearOEditarProductoDialog({
     setPrecio("");
     setDescripcion("");
     setCategoria("");
-    setImagenUrl(null);
+    setImagenUrls([]); // Importante: Resetear la URL de la imagen
     setStock("0");
     setPublicado(true);
     setFormError(null);
   };
 
-  const handleImagenSubida = (url: string) => {
-    setImagenUrl(url);
+  // Esta función es llamada por el componente ImageUploader cuando una imagen se sube con éxito
+  const handleImagenSubida = (urls: string[]) => {
+    setImagenUrls(urls);
+  };
+  const handleRemoveImage = (urlToRemove: string) => {
+    setImagenUrls((prevUrls) => prevUrls.filter((url) => url !== urlToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
-    if (isSubmitting) return;
+    if (isSubmitting) return; // Evitar múltiples envíos si ya está en curso
 
+    // Validaciones del formulario
     if (!nombre || !precio || !descripcion || !categoria || !stock) {
       setFormError("Por favor, completa todos los campos obligatorios.");
       return;
     }
-    if (!imagenUrl) {
+    if (!imagenUrls.length) {
       setFormError("Por favor, sube una imagen para el producto.");
       return;
     }
@@ -116,7 +120,7 @@ export default function CrearOEditarProductoDialog({
       price: Number(precio),
       description: descripcion,
       category: categoria,
-      image: imagenUrl,
+      image: imagenUrls,
       stock: Number.parseInt(stock, 10),
       is_posted: publicado,
       popularity: productoInicial?.popularity || 0, // Mantener si existe, o 0 si es nuevo
@@ -138,21 +142,37 @@ export default function CrearOEditarProductoDialog({
         body: JSON.stringify(productoPayload),
       });
 
+      const responseText = await response.text();
+      let responseData: any;
+      try {
+        if (responseText) {
+          responseData = JSON.parse(responseText);
+        } else {
+          responseData = {}; // Empty response
+        }
+      } catch (jsonParseError) {
+        responseData = { message: responseText };
+      }
+
       if (!response.ok) {
         let errorMessage = `Error al ${
           productoInicial ? "actualizar" : "crear"
         } el producto: ${response.statusText}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          const textError = await response.text();
-          errorMessage = textError || errorMessage;
+        if (responseData && responseData.message) {
+          errorMessage = responseData.message;
+        } else if (
+          typeof responseData === "string" &&
+          responseData.startsWith("<!DOCTYPE html>")
+        ) {
+          errorMessage =
+            "Error del servidor (respuesta HTML inesperada). Verifica la consola del navegador y el servidor.";
+        } else if (typeof responseData === "string") {
+          errorMessage = responseData; // If it's just raw text
         }
         throw new Error(errorMessage);
       }
 
-      const data = await response.json(); // El producto recién creado o actualizado
+      const data = responseData; // El producto recién creado o actualizado
 
       // Actualizar la lista de productos en el componente padre
       if (onProductsChange) {
@@ -183,7 +203,8 @@ export default function CrearOEditarProductoDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      {/* Scrollbar: Añadimos max-h-[90vh] para limitar la altura y overflow-y-auto para el scroll */}
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {productoInicial ? "Editar Producto" : "Crear Nuevo Producto"}
@@ -268,11 +289,12 @@ export default function CrearOEditarProductoDialog({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="imagen">Imagen</Label>
+            {/* El componente ImageUploader encapsula la lógica del botón y la subida */}
             <ImageUploader onUpload={handleImagenSubida} />
-            {imagenUrl && (
+            {imagenUrls.length > 0 && (
               <div className="relative w-full h-40 border rounded-md overflow-hidden mt-2">
                 <img
-                  src={imagenUrl}
+                  src={imagenUrls[0]}
                   alt="Vista previa del producto"
                   className="w-full h-full object-contain"
                 />
@@ -309,7 +331,7 @@ export default function CrearOEditarProductoDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !imagenUrl}>
+            <Button type="submit" disabled={isSubmitting || !imagenUrls.length}>
               {isSubmitting
                 ? productoInicial
                   ? "Guardando Cambios..."
