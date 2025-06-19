@@ -140,6 +140,7 @@ export default function CrearOEditarProductoDialog({
         let errorData: ErrorResponse = { message: "Error desconocido" };
         try {
           const parsedError = await response.json();
+          // Ensure parsedError is an object and has a message property
           if (
             typeof parsedError === "object" &&
             parsedError !== null &&
@@ -149,7 +150,8 @@ export default function CrearOEditarProductoDialog({
           } else {
             errorData.message = response.statusText || "Error del servidor.";
           }
-        } catch {
+        } catch (parseError) {
+          // Catch the parsing error to avoid unhandled promise rejections
           errorData.message =
             response.statusText || "Error del servidor (respuesta no JSON).";
         }
