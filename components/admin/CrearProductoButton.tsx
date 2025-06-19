@@ -149,7 +149,7 @@ export default function CrearOEditarProductoDialog({
           } else {
             errorData.message = response.statusText || "Error del servidor.";
           }
-        } catch {
+        } catch (parseError) {
           errorData.message =
             response.statusText || "Error del servidor (respuesta no JSON).";
         }
