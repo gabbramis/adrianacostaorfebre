@@ -1,4 +1,3 @@
-// components/admin/CrearOEditarProductoDialog.tsx
 "use client";
 
 import type React from "react";
@@ -22,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Producto } from "@/app/admin/products/page"; // Importa la interfaz Producto
+import { Producto } from "@/app/admin/products/page";
 import ImageUploader from "./SubirImagen";
 import { Checkbox } from "../ui/checkbox";
 
@@ -31,7 +30,11 @@ interface CrearOEditarProductoDialogProps {
   products: Producto[];
   onProductsChange?: (products: Producto[]) => void;
   onOpenChange?: (open: boolean) => void;
-  productoInicial?: Producto | null; // El producto que se va a editar (o null para crear)
+  productoInicial?: Producto | null;
+}
+
+interface ErrorResponse {
+  message: string;
 }
 
 export default function CrearOEditarProductoDialog({
@@ -41,7 +44,7 @@ export default function CrearOEditarProductoDialog({
   onOpenChange,
   productoInicial,
 }: CrearOEditarProductoDialogProps) {
-  const [imagenUrl, setImagenUrl] = useState<string | null>(null);
+  const [imagenUrls, setImagenUrls] = useState<string[]>([]);
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -51,19 +54,16 @@ export default function CrearOEditarProductoDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Efecto para inicializar el formulario cuando se abre o cambia el producto inicial
   useEffect(() => {
     if (open && productoInicial) {
-      // Si el diálogo se abre en modo edición (productoInicial no es null)
       setNombre(productoInicial.name);
       setPrecio(productoInicial.price.toString());
       setDescripcion(productoInicial.description || "");
       setCategoria(productoInicial.category);
       setStock(productoInicial.stock?.toString() || "0");
       setPublicado(productoInicial.is_posted);
-      setImagenUrl(productoInicial.image || null); // Carga la URL de imagen existente
+      setImagenUrls(productoInicial.image || []);
     } else if (!open) {
-      // Si el diálogo se cierra, resetea el formulario
       resetearFormulario();
     }
   }, [open, productoInicial]);
@@ -73,14 +73,14 @@ export default function CrearOEditarProductoDialog({
     setPrecio("");
     setDescripcion("");
     setCategoria("");
-    setImagenUrl(null);
+    setImagenUrls([]);
     setStock("0");
     setPublicado(true);
     setFormError(null);
   };
 
-  const handleImagenSubida = (url: string) => {
-    setImagenUrl(url);
+  const handleImagenSubida = (urls: string[]) => {
+    setImagenUrls(urls);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,7 +93,7 @@ export default function CrearOEditarProductoDialog({
       setFormError("Por favor, completa todos los campos obligatorios.");
       return;
     }
-    if (!imagenUrl) {
+    if (!imagenUrls.length) {
       setFormError("Por favor, sube una imagen para el producto.");
       return;
     }
@@ -101,7 +101,7 @@ export default function CrearOEditarProductoDialog({
       setFormError("El precio debe ser un número válido mayor o igual a 0.");
       return;
     }
-    if (isNaN(Number(stock)) || Number(Number.parseInt(stock, 10)) < 0) {
+    if (isNaN(Number(stock)) || Number.parseInt(stock, 10) < 0) {
       setFormError(
         "El stock debe ser un número entero válido mayor o igual a 0."
       );
@@ -110,28 +110,26 @@ export default function CrearOEditarProductoDialog({
 
     setIsSubmitting(true);
 
-    // Los datos a enviar al backend
     const productoPayload = {
       name: nombre,
       price: Number(precio),
       description: descripcion,
       category: categoria,
-      image: imagenUrl,
+      image: imagenUrls,
       stock: Number.parseInt(stock, 10),
       is_posted: publicado,
-      popularity: productoInicial?.popularity || 0, // Mantener si existe, o 0 si es nuevo
-      materials: productoInicial?.materials || [], // Mantener si existe, o [] si es nuevo
+      popularity: productoInicial?.popularity || 0,
+      materials: productoInicial?.materials || [],
     };
 
-    // Determinar el método HTTP y la URL según si estamos editando o creando
     const method = productoInicial ? "PATCH" : "POST";
     const url = productoInicial
-      ? `/api/products/${productoInicial.id}` // Para editar, usa la URL con el ID
-      : "/api/products/create"; // Para crear
+      ? `/api/products/${productoInicial.id}`
+      : "/api/products/create";
 
     try {
       const response = await fetch(url, {
-        method: method,
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -139,37 +137,39 @@ export default function CrearOEditarProductoDialog({
       });
 
       if (!response.ok) {
-        let errorMessage = `Error al ${
-          productoInicial ? "actualizar" : "crear"
-        } el producto: ${response.statusText}`;
+        let errorData: ErrorResponse = { message: "Error desconocido" };
         try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          const textError = await response.text();
-          errorMessage = textError || errorMessage;
+          const parsedError = await response.json();
+          if (
+            typeof parsedError === "object" &&
+            parsedError !== null &&
+            "message" in parsedError
+          ) {
+            errorData = parsedError as ErrorResponse;
+          } else {
+            errorData.message = response.statusText || "Error del servidor.";
+          }
+        } catch (parseError) {
+          errorData.message =
+            response.statusText || "Error del servidor (respuesta no JSON).";
         }
-        throw new Error(errorMessage);
+        throw new Error(errorData.message);
       }
 
-      const data = await response.json(); // El producto recién creado o actualizado
+      const data: Producto = await response.json();
 
-      // Actualizar la lista de productos en el componente padre
       if (onProductsChange) {
         if (productoInicial) {
-          // Si estamos editando, reemplazamos el producto antiguo por el nuevo actualizado
           onProductsChange(products.map((p) => (p.id === data.id ? data : p)));
         } else {
-          // Si estamos creando, añadimos el nuevo producto a la lista
           onProductsChange([...products, data]);
         }
       }
 
-      // Cerrar el diálogo después de una operación exitosa
       if (onOpenChange) {
         onOpenChange(false);
       }
-      resetearFormulario(); // Resetear el formulario para la próxima vez
+      resetearFormulario();
     } catch (error) {
       console.error(
         `Error al ${productoInicial ? "actualizar" : "crear"} el producto:`,
@@ -183,7 +183,7 @@ export default function CrearOEditarProductoDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {productoInicial ? "Editar Producto" : "Crear Nuevo Producto"}
@@ -269,10 +269,10 @@ export default function CrearOEditarProductoDialog({
           <div className="grid gap-2">
             <Label htmlFor="imagen">Imagen</Label>
             <ImageUploader onUpload={handleImagenSubida} />
-            {imagenUrl && (
+            {imagenUrls.length > 0 && (
               <div className="relative w-full h-40 border rounded-md overflow-hidden mt-2">
                 <img
-                  src={imagenUrl}
+                  src={imagenUrls[0]}
                   alt="Vista previa del producto"
                   className="w-full h-full object-contain"
                 />
@@ -309,7 +309,7 @@ export default function CrearOEditarProductoDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !imagenUrl}>
+            <Button type="submit" disabled={isSubmitting || !imagenUrls.length}>
               {isSubmitting
                 ? productoInicial
                   ? "Guardando Cambios..."

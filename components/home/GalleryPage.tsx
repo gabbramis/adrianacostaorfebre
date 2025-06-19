@@ -44,6 +44,11 @@ const sortOptions = [
 ];
 
 export default function GalleryPage() {
+  const getPrimaryImageSrc = (product: Producto): string => {
+    return product.image && product.image.length > 0
+      ? product.image[0]
+      : "/placeholder-image.jpg";
+  };
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,8 +169,8 @@ export default function GalleryPage() {
       case "recent":
         filtered.sort(
           (a, b) =>
-            new Date(b.createdAt || 0).getTime() -
-            new Date(a.createdAt || 0).getTime()
+            new Date(b.created_at || 0).getTime() -
+            new Date(a.created_at || 0).getTime()
         );
         break;
       case "price-low":
@@ -218,11 +223,12 @@ export default function GalleryPage() {
   };
 
   const handleAddToCart = (product: Producto) => {
+    const primaryImageSrc = getPrimaryImageSrc(product);
     addItem({
       id: Number(product.id),
       name: product.name,
       price: product.price,
-      imageSrc: product.image || "",
+      imageSrc: primaryImageSrc,
       category: product.category,
       materials: product.materials || [],
     });
@@ -447,7 +453,7 @@ export default function GalleryPage() {
                               >
                                 <div className="relative h-64 overflow-hidden">
                                   <img
-                                    src={product.image || "/placeholder.svg"}
+                                    src={getPrimaryImageSrc(product)}
                                     alt={product.name}
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                   />
@@ -465,7 +471,7 @@ export default function GalleryPage() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                                 <div className="relative h-80 md:h-96 bg-stone-100 rounded-md overflow-hidden">
                                   <img
-                                    src={product.image || "/placeholder.svg"}
+                                    src={getPrimaryImageSrc(product)}
                                     alt={product.name}
                                     className="w-full h-full object-contain"
                                   />
