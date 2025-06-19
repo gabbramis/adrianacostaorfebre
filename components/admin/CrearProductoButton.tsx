@@ -140,18 +140,34 @@ export default function CrearOEditarProductoDialog({
       });
 
       const responseText = await response.text();
-      let responseData: any; // Consider a more specific type if you know the shape
+      let responseData: any;
 
-      try {
-        if (responseText) {
-          responseData = JSON.parse(responseText);
-        } else {
-          responseData = null;
+      if (!response.ok) {
+        try {
+          const responseData = JSON.parse(responseText);
+        } catch (error: unknown) {
+          responseData = {
+            message:
+              responseText || `Request failed with status ${response.status}`,
+          };
         }
-      } catch (error: unknown) {
-        responseData = {
-          message: responseText || "An unknown error occurred.",
-        };
+      } else {
+        try {
+          if (responseText) {
+            responseData = JSON.parse(responseText);
+          } else {
+            responseData = null;
+          }
+        } catch (error: unknown) {
+          console.error(
+            "Unexpected JSON parsing error for successful response:",
+            error
+          );
+          responseData = {
+            message:
+              "Successfully received, but response format is unexpected.",
+          };
+        }
       }
 
       if (!response.ok) {
@@ -167,12 +183,12 @@ export default function CrearOEditarProductoDialog({
           errorMessage =
             "Error del servidor (respuesta HTML inesperada). Verifica la consola del navegador y el servidor.";
         } else if (typeof responseData === "string") {
-          errorMessage = responseData; // If it's just raw text
+          errorMessage = responseData;
         }
         throw new Error(errorMessage);
       }
 
-      const data = responseData; // El producto recién creado o actualizado
+      const data = responseData;
 
       // Actualizar la lista de productos en el componente padre
       if (onProductsChange) {
