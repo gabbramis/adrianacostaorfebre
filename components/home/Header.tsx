@@ -1,9 +1,9 @@
 "use client";
 
 import type React from "react";
-
-import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, Menu, X, ShoppingBag, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,9 +14,8 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge"
-import { useCart } from "@/contexts/cart-context"
-
+import { Badge } from "@/components/ui/badge";
+import { useCart } from "@/contexts/cart-context";
 
 export default function SiteHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,7 +23,7 @@ export default function SiteHeader() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { toggleCart, getTotalItems } = useCart()
+  const { toggleCart, getTotalItems } = useCart();
 
   // Detectar scroll para cambiar el estilo del header
   useEffect(() => {
@@ -51,17 +50,16 @@ export default function SiteHeader() {
     { name: "Inicio", href: "/" },
     { name: "Galería", href: "/galeria" },
     { name: "Sobre Nosotros", href: "/#nosotros" },
-    { name: "Contacto", href: "/contacto" },    
+    { name: "Contacto", href: "/contacto" },
     { name: "Preguntas Frecuentes", href: "/preguntas-frecuentes" },
   ];
 
-  const totalItems = getTotalItems()
+  const totalItems = getTotalItems();
 
-  
   return (
     <header
       className={`sticky top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white shadow-md py-2" : "bg-stone-100 py-4"
+        isScrolled ? "bg-white shadow-md py-2" : "bg-stone-100 py-2"
       }`}
     >
       <div className="container mx-auto px-4">
@@ -69,9 +67,17 @@ export default function SiteHeader() {
           {/* Logo */}
           <Link
             href="/"
-            className="text-xl md:text-2xl font-serif text-stone-800"
+            className="relative text-xl md:text-2xl font-serif text-stone-800 h-12 w-48"
           >
-            Adrianacostaorfebre
+            {" "}
+            {/* Add relative and define size here */}
+            <Image
+              src="/logo.png"
+              alt="Logo de Adrianacostaorfebre"
+              fill={true}
+              style={{ objectFit: "contain" }}
+              priority
+            />
           </Link>
 
           {/* Navegación - Escritorio */}
@@ -135,7 +141,12 @@ export default function SiteHeader() {
             </Button>
 
             {/* Carrito */}
-            <Button variant="ghost" size="icon" className="relative" onClick={toggleCart}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={toggleCart}
+            >
               <ShoppingBag size={20} />
               {totalItems > 0 && (
                 <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-stone-800 text-white text-xs flex items-center justify-center p-0">
@@ -159,7 +170,12 @@ export default function SiteHeader() {
             </Button>
 
             {/* Carrito móvil */}
-            <Button variant="ghost" size="icon" className="relative"  onClick={toggleCart}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={toggleCart}
+            >
               <ShoppingBag size={20} />
               {totalItems > 0 && (
                 <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-stone-800 text-white text-xs flex items-center justify-center p-0">
