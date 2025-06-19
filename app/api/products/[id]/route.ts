@@ -62,7 +62,7 @@ export async function PATCH(
         );
       }
 
-      if (updatedFields.image.some((url: any) => typeof url !== "string")) {
+      if (updatedFields.image.some((url: string) => typeof url !== "string")) {
         return NextResponse.json(
           {
             message: "All items in the image array must be valid URL strings.",

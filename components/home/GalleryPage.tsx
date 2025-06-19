@@ -223,10 +223,7 @@ export default function GalleryPage() {
   };
 
   const handleAddToCart = (product: Producto) => {
-    const primaryImageSrc =
-      product.image && product.image.length > 0
-        ? product.image[0]
-        : "/placeholder-image.jpg";
+    const primaryImageSrc = getPrimaryImageSrc(product);
     addItem({
       id: Number(product.id),
       name: product.name,

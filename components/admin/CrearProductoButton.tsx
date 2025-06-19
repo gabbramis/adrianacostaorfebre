@@ -82,9 +82,6 @@ export default function CrearOEditarProductoDialog({
   const handleImagenSubida = (urls: string[]) => {
     setImagenUrls(urls);
   };
-  const handleRemoveImage = (urlToRemove: string) => {
-    setImagenUrls((prevUrls) => prevUrls.filter((url) => url !== urlToRemove));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,15 +140,18 @@ export default function CrearOEditarProductoDialog({
       });
 
       const responseText = await response.text();
-      let responseData: any;
+      let responseData: any; // Consider a more specific type if you know the shape
+
       try {
         if (responseText) {
           responseData = JSON.parse(responseText);
         } else {
-          responseData = {}; // Empty response
+          responseData = null;
         }
-      } catch (jsonParseError) {
-        responseData = { message: responseText };
+      } catch (error: unknown) {
+        responseData = {
+          message: responseText || "An unknown error occurred.",
+        };
       }
 
       if (!response.ok) {

@@ -29,7 +29,7 @@ export default function ImageUploader({
 
     setLoading(true);
     setUploadErrorMessage(null);
-    let uploadedUrls: string[] = [];
+    const uploadedUrls: string[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
