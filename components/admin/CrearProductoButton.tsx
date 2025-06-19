@@ -1,4 +1,3 @@
-// components/admin/CrearOEditarProductoDialog.tsx
 "use client";
 
 import type React from "react";
@@ -22,8 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Producto } from "@/app/admin/products/page"; // Importa la interfaz Producto
-import ImageUploader from "./SubirImagen"; // Importa tu componente SubirImagen
+import { Producto } from "@/app/admin/products/page";
+import ImageUploader from "./SubirImagen";
 import { Checkbox } from "../ui/checkbox";
 
 interface CrearOEditarProductoDialogProps {
@@ -31,7 +30,7 @@ interface CrearOEditarProductoDialogProps {
   products: Producto[];
   onProductsChange?: (products: Producto[]) => void;
   onOpenChange?: (open: boolean) => void;
-  productoInicial?: Producto | null; // El producto que se va a editar (o null para crear)
+  productoInicial?: Producto | null;
 }
 
 export default function CrearOEditarProductoDialog({
@@ -48,10 +47,9 @@ export default function CrearOEditarProductoDialog({
   const [categoria, setCategoria] = useState("");
   const [stock, setStock] = useState("0");
   const [publicado, setPublicado] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Para el envío del formulario principal
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Efecto para inicializar el formulario cuando se abre o cambia el producto inicial
   useEffect(() => {
     if (open && productoInicial) {
       setNombre(productoInicial.name);
@@ -60,9 +58,8 @@ export default function CrearOEditarProductoDialog({
       setCategoria(productoInicial.category);
       setStock(productoInicial.stock?.toString() || "0");
       setPublicado(productoInicial.is_posted);
-      setImagenUrls(productoInicial.image ? productoInicial.image : []); // Carga la URL de imagen existente
+      setImagenUrls(productoInicial.image || []);
     } else if (!open) {
-      // Si el diálogo se cierra, resetea el formulario
       resetearFormulario();
     }
   }, [open, productoInicial]);
@@ -72,13 +69,12 @@ export default function CrearOEditarProductoDialog({
     setPrecio("");
     setDescripcion("");
     setCategoria("");
-    setImagenUrls([]); // Importante: Resetear la URL de la imagen
+    setImagenUrls([]);
     setStock("0");
     setPublicado(true);
     setFormError(null);
   };
 
-  // Esta función es llamada por el componente ImageUploader cuando una imagen se sube con éxito
   const handleImagenSubida = (urls: string[]) => {
     setImagenUrls(urls);
   };
@@ -87,9 +83,8 @@ export default function CrearOEditarProductoDialog({
     e.preventDefault();
     setFormError(null);
 
-    if (isSubmitting) return; // Evitar múltiples envíos si ya está en curso
+    if (isSubmitting) return;
 
-    // Validaciones del formulario
     if (!nombre || !precio || !descripcion || !categoria || !stock) {
       setFormError("Por favor, completa todos los campos obligatorios.");
       return;
@@ -102,7 +97,7 @@ export default function CrearOEditarProductoDialog({
       setFormError("El precio debe ser un número válido mayor o igual a 0.");
       return;
     }
-    if (isNaN(Number(stock)) || Number(Number.parseInt(stock, 10)) < 0) {
+    if (isNaN(Number(stock)) || Number.parseInt(stock, 10) < 0) {
       setFormError(
         "El stock debe ser un número entero válido mayor o igual a 0."
       );
@@ -111,7 +106,6 @@ export default function CrearOEditarProductoDialog({
 
     setIsSubmitting(true);
 
-    // Los datos a enviar al backend
     const productoPayload = {
       name: nombre,
       price: Number(precio),
@@ -120,92 +114,53 @@ export default function CrearOEditarProductoDialog({
       image: imagenUrls,
       stock: Number.parseInt(stock, 10),
       is_posted: publicado,
-      popularity: productoInicial?.popularity || 0, // Mantener si existe, o 0 si es nuevo
-      materials: productoInicial?.materials || [], // Mantener si existe, o [] si es nuevo
+      popularity: productoInicial?.popularity || 0,
+      materials: productoInicial?.materials || [],
     };
 
-    // Determinar el método HTTP y la URL según si estamos editando o creando
     const method = productoInicial ? "PATCH" : "POST";
     const url = productoInicial
-      ? `/api/products/${productoInicial.id}` // Para editar, usa la URL con el ID
-      : "/api/products/create"; // Para crear
+      ? `/api/products/${productoInicial.id}`
+      : "/api/products/create";
 
     try {
       const response = await fetch(url, {
-        method: method,
+        method,
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(productoPayload),
       });
 
-      const responseText = await response.text();
-      let responseData: any;
-
       if (!response.ok) {
+        let errorData: any;
         try {
-          const responseData = JSON.parse(responseText);
-        } catch (error: unknown) {
-          responseData = {
-            message:
-              responseText || `Request failed with status ${response.status}`,
-          };
+          errorData = await response.json();
+        } catch {
+          errorData = { message: response.statusText || "Error desconocido" };
         }
-      } else {
-        try {
-          if (responseText) {
-            responseData = JSON.parse(responseText);
-          } else {
-            responseData = null;
-          }
-        } catch (error: unknown) {
-          console.error(
-            "Unexpected JSON parsing error for successful response:",
-            error
-          );
-          responseData = {
-            message:
-              "Successfully received, but response format is unexpected.",
-          };
-        }
+        throw new Error(
+          errorData.message ||
+            `Error al ${
+              productoInicial ? "actualizar" : "crear"
+            } el producto: ${response.statusText}`
+        );
       }
 
-      if (!response.ok) {
-        let errorMessage = `Error al ${
-          productoInicial ? "actualizar" : "crear"
-        } el producto: ${response.statusText}`;
-        if (responseData && responseData.message) {
-          errorMessage = responseData.message;
-        } else if (
-          typeof responseData === "string" &&
-          responseData.startsWith("<!DOCTYPE html>")
-        ) {
-          errorMessage =
-            "Error del servidor (respuesta HTML inesperada). Verifica la consola del navegador y el servidor.";
-        } else if (typeof responseData === "string") {
-          errorMessage = responseData;
-        }
-        throw new Error(errorMessage);
-      }
+      const data: Producto = await response.json();
 
-      const data = responseData;
-
-      // Actualizar la lista de productos en el componente padre
       if (onProductsChange) {
         if (productoInicial) {
-          // Si estamos editando, reemplazamos el producto antiguo por el nuevo actualizado
           onProductsChange(products.map((p) => (p.id === data.id ? data : p)));
         } else {
-          // Si estamos creando, añadimos el nuevo producto a la lista
           onProductsChange([...products, data]);
         }
       }
 
-      // Cerrar el diálogo después de una operación exitosa
       if (onOpenChange) {
         onOpenChange(false);
       }
-      resetearFormulario(); // Resetear el formulario para la próxima vez
+      resetearFormulario();
     } catch (error) {
       console.error(
         `Error al ${productoInicial ? "actualizar" : "crear"} el producto:`,
@@ -219,7 +174,6 @@ export default function CrearOEditarProductoDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Scrollbar: Añadimos max-h-[90vh] para limitar la altura y overflow-y-auto para el scroll */}
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -305,7 +259,6 @@ export default function CrearOEditarProductoDialog({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="imagen">Imagen</Label>
-            {/* El componente ImageUploader encapsula la lógica del botón y la subida */}
             <ImageUploader onUpload={handleImagenSubida} />
             {imagenUrls.length > 0 && (
               <div className="relative w-full h-40 border rounded-md overflow-hidden mt-2">
