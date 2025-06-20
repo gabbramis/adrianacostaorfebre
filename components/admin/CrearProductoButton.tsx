@@ -33,10 +33,6 @@ interface CrearOEditarProductoDialogProps {
   productoInicial?: Producto | null;
 }
 
-interface ErrorResponse {
-  message: string;
-}
-
 export default function CrearOEditarProductoDialog({
   open,
   products,
@@ -137,23 +133,17 @@ export default function CrearOEditarProductoDialog({
       });
 
       if (!response.ok) {
-        let errorData: ErrorResponse = { message: "Error desconocido" };
+        let errorMessage = `Error al ${
+          productoInicial ? "actualizar" : "crear"
+        } el producto: ${response.statusText}`;
         try {
-          const parsedError = await response.json();
-          if (
-            typeof parsedError === "object" &&
-            parsedError !== null &&
-            "message" in parsedError
-          ) {
-            errorData = parsedError as ErrorResponse;
-          } else {
-            errorData.message = response.statusText || "Error del servidor.";
-          }
-        } catch (parseError) {
-          errorData.message =
-            response.statusText || "Error del servidor (respuesta no JSON).";
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          const textError = await response.text();
+          errorMessage = textError || errorMessage;
         }
-        throw new Error(errorData.message);
+        throw new Error(errorMessage);
       }
 
       const data: Producto = await response.json();

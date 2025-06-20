@@ -38,10 +38,9 @@ export async function DELETE(
 
 export async function PATCH(
   req: NextRequest,
-  // Correctly destructure params directly, it's not a Promise
-  { params }: { params: { id: string } } // <-- Changed here
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params; // <-- Changed here (no 'await' needed)
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json(
@@ -53,37 +52,10 @@ export async function PATCH(
   try {
     const updatedFields = await req.json();
 
-    if (updatedFields.image !== undefined) {
-      // Check if 'image' field is being updated
-      if (!Array.isArray(updatedFields.image)) {
-        return NextResponse.json(
-          { message: "Image field must be an array of URLs." },
-          { status: 400 }
-        );
-      }
-
-      if (updatedFields.image.some((url: string) => typeof url !== "string")) {
-        return NextResponse.json(
-          {
-            message: "All items in the image array must be valid URL strings.",
-          },
-          { status: 400 }
-        );
-      }
-
-      if (updatedFields.image.length === 0) {
-        return NextResponse.json(
-          { message: "At least one image URL is required for the product." },
-          { status: 400 }
-        );
-      }
-    }
-
     const supabase = await createSupabaseServer();
-
     const { data, error } = await supabase
       .from("products")
-      .update(updatedFields) // This will correctly send the 'image' array to Supabase
+      .update(updatedFields)
       .eq("id", id)
       .select()
       .single();
@@ -91,15 +63,8 @@ export async function PATCH(
     if (error) {
       console.error("Error updating product in database:", error);
       return NextResponse.json(
-        { message: error.message || "Error updating product." },
+        { message: "Error updating product" },
         { status: 500 }
-      );
-    }
-
-    if (!data) {
-      return NextResponse.json(
-        { message: "Product not found." },
-        { status: 404 }
       );
     }
 
