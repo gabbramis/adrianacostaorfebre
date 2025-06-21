@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant hover (&:hover);
 
 @theme {
   --color-background: hsl(var(--background));

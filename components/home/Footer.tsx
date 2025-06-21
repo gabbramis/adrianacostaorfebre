@@ -1,6 +1,8 @@
-import { FacebookIcon } from "@/lib/icons/facebook";
-import { InstagramIcon } from "@/lib/icons/instagram";
-import { IconBrandWhatsapp } from "@tabler/icons-react";
+import {
+  IconBrandFacebook,
+  IconBrandInstagram,
+  IconBrandWhatsapp,
+} from "@tabler/icons-react";
 import { Mail, MapPin } from "lucide-react";
 import Link from "next/link";
 
@@ -81,21 +83,21 @@ export default function Footer() {
                   href="https://www.instagram.com/adrianacostaorfebre/"
                   className="text-stone-400 hover:text-white transition-colors"
                 >
-                  <InstagramIcon className="fill-stone-400 size-6 hover:fill-stone-300" />
+                  <IconBrandInstagram className="text-stone-400 size-7 hover:text-stone-300" />
                   <span className="sr-only">Instagram</span>
                 </Link>
                 <Link
                   href="https://www.facebook.com/adrianacostaorfebre"
                   className="text-stone-400 hover:text-white transition-colors"
                 >
-                  <FacebookIcon className="fill-stone-400 size-6 hover:fill-stone-300" />
+                  <IconBrandFacebook className="text-stone-400 size-7 hover:text-stone-300" />
                   <span className="sr-only ">Facebook</span>
                 </Link>
                 <Link
-                  href="https://wa.me/59899252222"
+                  href="https://wa.me/59891840146"
                   className="text-stone-400 hover:text-white transition-colors"
                 >
-                  <IconBrandWhatsapp className="fill-stone-400 size-6 hover:fill-stone-300" />
+                  <IconBrandWhatsapp className="text-stone-400 size-7 hover:text-stone-300" />
                   <span className="sr-only ">Whatsapp</span>
                 </Link>
               </div>
