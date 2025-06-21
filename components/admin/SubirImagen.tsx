@@ -111,7 +111,7 @@ export default function ImageUploader({
         onClick={() => fileInputRef.current?.click()}
         disabled={loading}
       >
-        {loading ? "Subiendo..." : "Seleccionar Imagen(es)"}
+        {loading ? "Subiendo..." : "Seleccionar Imagenes"}
       </Button>
 
       {uploadErrorMessage && (

@@ -21,6 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 import { Producto } from "@/app/admin/products/page";
 import ImageUploader from "./SubirImagen";
 import { Checkbox } from "../ui/checkbox";
@@ -248,8 +255,8 @@ export default function CrearOEditarProductoDialog({
                 <SelectValue placeholder="Seleccionar categoría" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="collares">Collares</SelectItem>
-                <SelectItem value="pulseras">Pulseras</SelectItem>
+                <SelectItem value="colgantes">Colgantes</SelectItem>
+                <SelectItem value="esclavas">Esclavas</SelectItem>
                 <SelectItem value="anillos">Anillos</SelectItem>
                 <SelectItem value="caravanas">Caravanas</SelectItem>
                 <SelectItem value="otros">Otros</SelectItem>
@@ -260,12 +267,32 @@ export default function CrearOEditarProductoDialog({
             <Label htmlFor="imagen">Imagen</Label>
             <ImageUploader onUpload={handleImagenSubida} />
             {imagenUrls.length > 0 && (
-              <div className="relative w-full h-40 border rounded-md overflow-hidden mt-2">
-                <img
-                  src={imagenUrls[0]}
-                  alt="Vista previa del producto"
-                  className="w-full h-full object-contain"
-                />
+              <div className="mt-2">
+                <Carousel className="w-full max-w-xs mx-auto">
+                  {" "}
+                  {/* Ajusta el ancho según necesites */}
+                  <CarouselContent>
+                    {imagenUrls.map((url, index) => (
+                      <CarouselItem key={index}>
+                        <div className="p-1">
+                          <div className="relative w-full h-40 border rounded-md overflow-hidden">
+                            <img
+                              src={url}
+                              alt={`Vista previa del producto ${index + 1}`}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  {imagenUrls.length > 1 && ( // Muestra las flechas solo si hay más de una imagen
+                    <>
+                      <CarouselPrevious type="button" />
+                      <CarouselNext type="button" />
+                    </>
+                  )}
+                </Carousel>
               </div>
             )}
           </div>

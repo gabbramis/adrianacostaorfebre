@@ -12,6 +12,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/cart-context";
 import { createSupabaseClient } from "@/utils/supabase/client";
@@ -470,11 +477,37 @@ export default function GalleryPage() {
 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                                 <div className="relative h-80 md:h-96 bg-stone-100 rounded-md overflow-hidden">
-                                  <img
-                                    src={getPrimaryImageSrc(product)}
-                                    alt={product.name}
-                                    className="w-full h-full object-contain"
-                                  />
+                                  {product.image && product.image.length > 0 ? (
+                                    <Carousel className="w-full h-full">
+                                      <CarouselContent>
+                                        {product.image.map((url, index) => (
+                                          <CarouselItem key={index}>
+                                            <div className="w-full h-full flex items-center justify-center">
+                                              <img
+                                                src={url}
+                                                alt={`${
+                                                  product.name
+                                                } - Imagen ${index + 1}`}
+                                                className="w-full h-full object-contain"
+                                              />
+                                            </div>
+                                          </CarouselItem>
+                                        ))}
+                                      </CarouselContent>
+                                      {product.image.length > 1 && (
+                                        <>
+                                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                                        </>
+                                      )}
+                                    </Carousel>
+                                  ) : (
+                                    <img
+                                      src="/placeholder-image.jpg"
+                                      alt="Imagen no disponible"
+                                      className="w-full h-full object-contain bg-gray-200"
+                                    />
+                                  )}
                                 </div>
 
                                 <div>

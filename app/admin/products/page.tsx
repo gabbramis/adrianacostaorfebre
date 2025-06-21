@@ -9,27 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createSupabaseClient } from "@/utils/supabase/client";
 
-// ---
-// Interfaz Producto: Asegúrate de que esta interfaz esté en sincronía
-// con la definición de tu base de datos y los datos que maneja tu frontend.
-// La propiedad 'image' debe ser 'string[]' para múltiples imágenes.
-// ---
 export interface Producto {
-  id: string; // O number, si tu ID es numérico en la DB
+  id: string;
   name: string;
   price: number;
   is_posted: boolean;
   category: string;
-  description?: string; // Propiedad opcional
-  image?: string[]; // <-- Asegúrate de que es un array de strings
-  stock?: number; // Propiedad opcional
-  materials?: string[]; // Propiedad opcional
-  popularity?: number; // Propiedad opcional
-  created_at?: string; // Usar snake_case si así viene de Supabase
+  description?: string;
+  image?: string[];
+  stock?: number;
+  materials?: string[];
+  popularity?: number;
+  created_at?: string;
 }
 
 export default function AdminProductsPage() {
-  // Renamed for better semantics
   const [productos, setProductos] = useState<Producto[]>([]);
   const [productoParaEditar, setProductoParaEditar] = useState<Producto | null>(
     null
@@ -37,7 +31,6 @@ export default function AdminProductsPage() {
   const [dialogoAbierto, setDialogoAbierto] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Función para cargar los productos desde Supabase
   const cargarProductos = async () => {
     setIsLoading(true);
     const supabase = createSupabaseClient();
@@ -45,19 +38,15 @@ export default function AdminProductsPage() {
 
     if (error) {
       console.error("Error al cargar productos:", error);
-      // Opcional: mostrar un mensaje de error al usuario
     } else {
-      setProductos(data || []); // Asegurarse de que data sea un array (o vacío)
+      setProductos(data || []);
     }
     setIsLoading(false);
   };
 
-  // Cargar productos al montar el componente (solo una vez)
   useEffect(() => {
     cargarProductos();
   }, []);
-
-  // Función para manejar la eliminación de un producto
   const handleDelete = async (id: string, productName: string) => {
     if (
       !confirm(
@@ -74,12 +63,11 @@ export default function AdminProductsPage() {
 
       if (!response.ok) {
         let errorMessage = `Error al eliminar el producto: ${response.statusText}`;
-        const responseData = await response.text(); // Leer como texto primero
+        const responseData = await response.text();
         try {
           const errorJson = JSON.parse(responseData);
           errorMessage = errorJson.message || errorMessage;
         } catch {
-          // Si no es JSON, usa el texto crudo
           errorMessage = responseData || errorMessage;
         }
         throw new Error(errorMessage);
