@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { mercadopagoPayment } from "@/app/actions/mercadopago-payment";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const {
@@ -31,13 +33,13 @@ export default function CartPage() {
     clearCart,
     getTotalPrice,
     getShipping,
-    getTax,
     getFinalTotal,
   } = useCart();
   const [promoCode, setPromoCode] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [promoApplied, setPromoApplied] = useState(false);
 
+  const router = useRouter();
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-UY", {
       style: "currency",
@@ -54,11 +56,14 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     setIsCheckingOut(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsCheckingOut(false);
-    alert(
-      "¡Gracias por tu compra! Te contactaremos pronto para coordinar la entrega."
-    );
+    const formData = new FormData();
+    formData.append("productName", "Checkout");
+    formData.append("productPrice", getTotalPrice().toString());
+    formData.append("productQuantity", "1");
+    const url = await mercadopagoPayment(formData);
+    if (url) {
+      router.push(url);
+    }
   };
 
   if (state.items.length === 0) {
@@ -341,26 +346,12 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    <div className="flex justify-between">
-                      <span>IVA (22%)</span>
-                      <span>{formatPrice(getTax())}</span>
-                    </div>
-
-                    {promoApplied && (
-                      <div className="flex justify-between text-green-600">
-                        <span>Descuento BIENVENIDO</span>
-                        <span>-{formatPrice(getTotalPrice() * 0.1)}</span>
-                      </div>
-                    )}
-
                     <Separator className="my-4" />
 
                     <div className="flex justify-between text-2xl font-bold">
                       <span>Total</span>
                       <span className="text-stone-800">
-                        {formatPrice(
-                          promoApplied ? getFinalTotal() * 0.9 : getFinalTotal()
-                        )}
+                        {formatPrice(getFinalTotal())}
                       </span>
                     </div>
 
