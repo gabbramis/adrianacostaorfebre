@@ -18,7 +18,7 @@ export default function AboutSection() {
 
             <p className="text-lg mb-4 text-gray-700">
               Soy Adriana, desde el año 2019 comencé mi formación como Orfebre
-              en la Escuela Pedro Figari. Trabajo con plata ,oro y piedras
+              en la Escuela Pedro Figari. Trabajo con plata, oro y piedras
               naturales, utilizando técnicas tradicionales.
             </p>
 
