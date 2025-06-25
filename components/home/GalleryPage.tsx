@@ -39,7 +39,15 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 // Tipos para los productos
-type ProductCategory = "anillos" | "collares" | "pulseras" | "aretes" | "todos";
+type ProductCategory =
+  | "anillos"
+  | "colgantes"
+  | "pulseras"
+  | "caravanas"
+  | "marcalibros"
+  | "prendedores"
+  | "llaveros"
+  | "todos";
 type SortOption = "popular" | "recent" | "price-low" | "price-high" | "name";
 
 const sortOptions = [
@@ -102,19 +110,34 @@ export default function GalleryPage() {
       count: products.filter((p) => p.category === "anillos").length,
     },
     {
-      id: "collares",
-      name: "Collares",
-      count: products.filter((p) => p.category === "collares").length,
-    },
-    {
       id: "pulseras",
       name: "Pulseras",
       count: products.filter((p) => p.category === "pulseras").length,
     },
     {
-      id: "aretes",
-      name: "Aretes",
-      count: products.filter((p) => p.category === "aretes").length,
+      id: "colgantes",
+      name: "Colgantes",
+      count: products.filter((p) => p.category === "colgantes").length,
+    },
+    {
+      id: "caravanas",
+      name: "Caravanas",
+      count: products.filter((p) => p.category === "caravanas").length,
+    },
+    {
+      id: "marcalibros",
+      name: "Marcalibros",
+      count: products.filter((p) => p.category === "marcalibros").length,
+    },
+    {
+      id: "prendedores",
+      name: "Prendedores",
+      count: products.filter((p) => p.category === "prendedores").length,
+    },
+    {
+      id: "llaveros",
+      name: "Llaveros",
+      count: products.filter((p) => p.category === "llaveros").length,
     },
   ];
 
