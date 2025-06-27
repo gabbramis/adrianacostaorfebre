@@ -62,7 +62,7 @@ export default function CartPage() {
     formData.append("productQuantity", "1");
     const url = await mercadopagoPayment(formData);
     if (url) {
-      router.push(url);
+      window.location.href = url;
     }
   };
 
