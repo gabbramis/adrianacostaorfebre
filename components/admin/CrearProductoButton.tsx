@@ -256,10 +256,12 @@ export default function CrearOEditarProductoDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="colgantes">Colgantes</SelectItem>
-                <SelectItem value="esclavas">Esclavas</SelectItem>
+                <SelectItem value="pulseras">Pulseras</SelectItem>
                 <SelectItem value="anillos">Anillos</SelectItem>
                 <SelectItem value="caravanas">Caravanas</SelectItem>
-                <SelectItem value="otros">Otros</SelectItem>
+                <SelectItem value="marcalibros">Marcalibros</SelectItem>
+                <SelectItem value="prendedores">Prendedores</SelectItem>
+                <SelectItem value="llaveros">Llaveros</SelectItem>
               </SelectContent>
             </Select>
           </div>
