@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const {
@@ -39,7 +38,6 @@ export default function CartPage() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [promoApplied, setPromoApplied] = useState(false);
 
-  const router = useRouter();
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-UY", {
       style: "currency",

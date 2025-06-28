@@ -1,7 +1,7 @@
 import { createSupabaseServer } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
-export const POST = async (req: NextRequest, res: NextResponse) => {
+export const POST = async (req: NextRequest) => {
   try {
     const webhookBody = await req.json();
     const paymentId = webhookBody.data?.id || webhookBody.id;
