@@ -99,21 +99,21 @@ export default function CartPage() {
 
   return (
     <>
-      <main className="pt-16 min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
-        <div className="container mx-auto px-4 py-8">
+      <main className="pt-0 md:pt-16 min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
+        <div className="container mx-auto px-4 py-4">
           {/* Header mejorado */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between mb-8 bg-white rounded-2xl p-6 shadow-sm"
+            className="block md:flex items-center justify-between mb-8 bg-white rounded-2xl p-6 shadow-sm"
           >
-            <div className="flex items-center">
+            <div className="flex  items-center">
               <Link href="/galeria" className="mr-4">
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <ArrowLeft size={20} />
                 </Button>
               </Link>
-              <div>
+              <div className="flex flex-col">
                 <h1 className="text-3xl font-serif text-stone-800">
                   Carrito de Compras
                 </h1>
@@ -121,21 +121,6 @@ export default function CartPage() {
                   Revisa tus productos antes de continuar
                 </p>
               </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="text-base px-4 py-2">
-                {state.items.length}{" "}
-                {state.items.length === 1 ? "producto" : "productos"}
-              </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearCart}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <Trash2 size={16} className="mr-1" />
-                Vaciar carrito
-              </Button>
             </div>
           </motion.div>
 
@@ -148,15 +133,15 @@ export default function CartPage() {
                 transition={{ delay: 0.1 }}
               >
                 <Card className="shadow-sm border-0 bg-white/80 backdrop-blur">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center text-xl">
-                      <ShoppingBag className="mr-2 text-stone-600" size={24} />
-                      Productos en tu carrito
+                  <CardHeader className="pb-3 md:pb-4">
+                    <CardTitle className="flex items-center text-lg md:text-xl gap-2">
+                      <ShoppingBag className="text-stone-600" size={20} />
+                      <span className="sm:inline">Productos en tu carrito</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="px-3 md:px-6">
                     <AnimatePresence>
-                      <div className="space-y-6">
+                      <div className="space-y-3 md:space-y-6">
                         {state.items.map((item, index) => (
                           <motion.div
                             key={item.id}
@@ -164,39 +149,81 @@ export default function CartPage() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, x: -100 }}
                             transition={{ delay: index * 0.1 }}
-                            className="group bg-gradient-to-r from-white to-stone-50 rounded-2xl p-6 border border-stone-200 hover:shadow-md transition-all duration-300"
+                            className="group bg-gradient-to-r from-white to-stone-50 rounded-xl md:rounded-2xl p-3 md:p-6 border border-stone-200 hover:shadow-md transition-all duration-300"
                           >
-                            <div className="flex items-center space-x-6">
-                              <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-stone-100">
+                            <div className="flex items-center gap-3 md:gap-6">
+                              {/* Product Image */}
+                              <div className="relative w-16 h-16 md:w-24 md:h-24 flex-shrink-0 rounded-lg md:rounded-xl overflow-hidden bg-stone-100">
                                 <img
                                   src={item.imageSrc || "/placeholder.svg"}
                                   alt={item.name}
-                                  className="object-cover"
+                                  className="absolute inset-0 w-full h-full object-cover"
                                 />
                               </div>
 
+                              {/* Product Info */}
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-xl font-medium text-gray-900 mb-2">
+                                <h3 className="text-base md:text-xl font-medium text-gray-900 mb-1 md:mb-2 line-clamp-2">
                                   {item.name}
                                 </h3>
-                                <div className="flex flex-wrap gap-2 mb-3">
+                                <div className="flex flex-wrap gap-1 md:gap-2 mb-2 md:mb-3">
                                   {item.materials.map((material, idx) => (
                                     <Badge
                                       key={idx}
                                       variant="outline"
-                                      className="text-xs bg-stone-100"
+                                      className="text-xs bg-stone-100 px-2 py-0.5"
                                     >
                                       {material}
                                     </Badge>
                                   ))}
                                 </div>
-                                <p className="text-sm text-gray-500 capitalize">
+                                <p className="text-xs md:text-sm text-gray-500 capitalize hidden md:block">
                                   Categoría: {item.category}
                                 </p>
                               </div>
 
-                              {/* Controles de cantidad mejorados */}
-                              <div className="flex items-center space-x-4">
+                              {/* Mobile: Price and Actions Horizontally Aligned */}
+                              <div className="flex items-center gap-3 md:hidden">
+                                {/* Quantity Controls */}
+                                <div className="flex items-center bg-stone-100 rounded-full p-0.5">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-full hover:bg-white"
+                                    onClick={() =>
+                                      updateQuantity(item.id, item.quantity - 1)
+                                    }
+                                  >
+                                    <Minus size={14} />
+                                  </Button>
+                                  <span className="w-8 text-center font-semibold text-sm">
+                                    {item.quantity}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-full hover:bg-white"
+                                    onClick={() =>
+                                      updateQuantity(item.id, item.quantity + 1)
+                                    }
+                                  >
+                                    <Plus size={14} />
+                                  </Button>
+                                </div>
+
+                                {/* Pricing */}
+                                <div className="text-right">
+                                  <p className="text-lg font-bold text-stone-800">
+                                    {formatPrice(item.price * item.quantity)}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {formatPrice(item.price)} c/u
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Desktop: Quantity Controls */}
+                              <div className="hidden md:flex flex-col items-center gap-2">
                                 <div className="flex items-center bg-stone-100 rounded-full p-1">
                                   <Button
                                     variant="ghost"
@@ -224,7 +251,8 @@ export default function CartPage() {
                                 </div>
                               </div>
 
-                              <div className="text-right">
+                              {/* Desktop: Price */}
+                              <div className="hidden md:block text-right">
                                 <p className="text-2xl font-bold text-stone-800">
                                   {formatPrice(item.price * item.quantity)}
                                 </p>
@@ -233,10 +261,11 @@ export default function CartPage() {
                                 </p>
                               </div>
 
+                              {/* Desktop: Delete Button */}
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full"
+                                className="hidden md:flex group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full"
                                 onClick={() => removeItem(item.id)}
                               >
                                 <Trash2 size={20} />

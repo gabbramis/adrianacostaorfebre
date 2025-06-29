@@ -52,7 +52,7 @@ export default function CrearOEditarProductoDialog({
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [categoria, setCategoria] = useState("");
-  const [stock, setStock] = useState("0");
+  const [stock, setStock] = useState("");
   const [publicado, setPublicado] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -63,7 +63,7 @@ export default function CrearOEditarProductoDialog({
       setPrecio(productoInicial.price.toString());
       setDescripcion(productoInicial.description || "");
       setCategoria(productoInicial.category);
-      setStock(productoInicial.stock?.toString() || "0");
+      setStock(productoInicial.stock?.toString() || "");
       setPublicado(productoInicial.is_posted);
       setImagenUrls(productoInicial.image || []);
     } else if (!open) {
@@ -77,7 +77,7 @@ export default function CrearOEditarProductoDialog({
     setDescripcion("");
     setCategoria("");
     setImagenUrls([]);
-    setStock("0");
+    setStock("");
     setPublicado(true);
     setFormError(null);
   };
@@ -209,9 +209,9 @@ export default function CrearOEditarProductoDialog({
               id="precio"
               name="precio"
               type="number"
-              placeholder="0.00"
+              placeholder="0"
               min="0"
-              step="0.01"
+              step="1"
               value={precio}
               onChange={(e) => setPrecio(e.target.value)}
               required
