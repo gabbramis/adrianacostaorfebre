@@ -1,12 +1,9 @@
-import AdminLayout from "@/components/admin/AdminLayout";
+//admin/orders
 import { createSupabaseServer } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import DetallesDeOrdenes from "@/components/admin/DetallesDeOrdenes";
 
-export default async function AdminLayoutServer({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function OrderPage() {
   const supabase = await createSupabaseServer();
 
   // CHECKEAR QUE EL USER EXISTA
@@ -17,5 +14,8 @@ export default async function AdminLayoutServer({
     redirect("/auth");
   }
 
-  return <AdminLayout>{children}</AdminLayout>;
+  // TRAER ORDERS
+  const { data: orders } = await supabase.from("orders").select("*");
+
+  return <DetallesDeOrdenes orders={orders || []} />;
 }

@@ -34,7 +34,7 @@ const data = {
     },
     {
       title: "Diseños Pendientes",
-      url: "/admin/designs",
+      url: "/admin/orders",
       icon: IconBrandSupernova,
     },
   ],

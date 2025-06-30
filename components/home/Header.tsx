@@ -73,7 +73,7 @@ export default function SiteHeader() {
             className="relative text-xl md:text-2xl font-serif text-stone-800 h-12 w-48 flex-shrink-0" // Added flex-shrink-0
           >
             <Image
-              src="/logo-header.png"
+              src="/white-header.png"
               alt="Logo de Adrianacostaorfebre"
               fill
               style={{ objectFit: "contain" }}

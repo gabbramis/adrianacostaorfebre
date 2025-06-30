@@ -29,7 +29,6 @@ export default function CartPage() {
     state,
     removeItem,
     updateQuantity,
-    clearCart,
     getTotalPrice,
     getShipping,
     getFinalTotal,
