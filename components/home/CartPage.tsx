@@ -1,37 +1,53 @@
 "use client";
-
-import { useState } from "react";
 import { mercadopagoPayment } from "@/app/actions/mercadopago-payment";
+import { createOrder, OrderData } from "@/app/actions/transfer-orders";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Minus,
-  Plus,
-  Trash2,
   ShoppingBag,
   ArrowLeft,
   CreditCard,
   Truck,
-  Shield,
-  Gift,
-  Tag,
+  MapPin,
+  User,
+  Mail,
+  Phone,
+  Home,
   CheckCircle2,
+  Package,
+  Banknote,
+  Shield,
+  AlertCircle,
 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
 
+interface CustomerInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  notes: string;
+}
+
 export default function CartPage() {
   const {
     state,
-    removeItem,
-    updateQuantity,
     getTotalPrice,
     getShipping,
-    getFinalTotal,
+    clearCart, // Asegúrate de tener una función para limpiar el carrito
   } = useCart();
   const [promoCode, setPromoCode] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -50,20 +66,189 @@ export default function CartPage() {
       setPromoApplied(true);
     }
   };
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [orderComplete, setOrderComplete] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<
+    "mercadopago" | "transfer"
+  >("mercadopago");
+
+  // Estado para guardar el ID de la orden
+  const [orderId, setOrderId] = useState<string | null>(null);
+
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    notes: "",
+  });
+
+  const [deliveryMethod, setDeliveryMethod] = useState<"shipping" | "pickup">(
+    "shipping"
+  );
+
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [errors, setErrors] = useState<Partial<CustomerInfo>>({});
+
+  const calculateShipping = () => {
+    return deliveryMethod === "pickup" ? 0 : getShipping();
+  };
+
+  const calculateTotal = () => {
+    // Asegúrate de que getTotalPrice retorne un número
+    return getTotalPrice() + calculateShipping();
+  };
 
   const handleCheckout = async () => {
     setIsCheckingOut(true);
-    const formData = new FormData();
-    formData.append("productName", "Checkout");
-    formData.append("productPrice", getTotalPrice().toString());
-    formData.append("productQuantity", "1");
-    const url = await mercadopagoPayment(formData);
-    if (url) {
-      window.location.href = url;
+    setIsProcessing(true);
+
+    // Preparar los datos de la orden para la base de datos
+    const orderData: OrderData = {
+      items: state.items.map((item) => ({
+        id: item.id.toString(),
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })), // Array de objetos de producto
+      totalPrice: calculateTotal(),
+      customerInfo: customerInfo,
+      deliveryMethod: deliveryMethod,
+      promoApplied: promoApplied,
+      shippingCost: calculateShipping(),
+      notes: customerInfo.notes,
+      paymentMethod: paymentMethod, // Añadir el método de pago aquí
+    };
+
+    try {
+      // ** 1. Guardar la orden en Supabase ANTES de la redirección de Mercado Pago **
+      const {
+        success,
+        orderId: newOrderId,
+        error,
+      } = await createOrder(orderData);
+
+      if (!success) {
+        // Manejar el error de Supabase
+        console.error("Error al guardar la orden en Supabase:", error);
+        alert("Hubo un error al procesar tu pedido. Intenta de nuevo.");
+        setIsProcessing(false);
+        setIsCheckingOut(false);
+        return;
+      }
+
+      setOrderId(newOrderId); // Guardar el ID de la orden para mostrarlo en la confirmación
+
+      // ** 2. Continuar con la lógica de pago **
+      if (paymentMethod === "mercadopago") {
+        const formData = new FormData();
+        // Es importante que mercadopagoPayment reciba el orderId si lo necesita
+        // Considera pasar solo lo esencial a mercadopagoPayment, quizás solo el total y el ID de la orden
+        // para que Mercado Pago pueda asociar el pago a una orden específica en tu DB.
+        formData.append("orderId", newOrderId!); // Pasa el ID de la orden
+        formData.append("products", JSON.stringify(orderData.items));
+        formData.append("totalPrice", orderData.totalPrice.toString());
+        formData.append("customerInfo", JSON.stringify(orderData.customerInfo));
+        formData.append("deliveryMethod", orderData.deliveryMethod);
+        formData.append("promoApplied", orderData.promoApplied.toString());
+        formData.append("shippingCost", orderData.shippingCost.toString());
+        formData.append("notes", orderData.notes);
+
+        try {
+          // Call mercadopagoPayment with the orderData object
+          const result = await mercadopagoPayment(orderData); // This now returns an object
+
+          if (result && result.success && result.url) {
+            // If successful, redirect the user to the Mercado Pago payment URL
+            window.location.href = result.url;
+          } else {
+            // Handle the error case
+            alert(
+              `No se pudo generar el link de pago con Mercado Pago: ${
+                result?.error || "Error desconocido"
+              }`
+            );
+            setIsProcessing(false);
+            setIsCheckingOut(false);
+          }
+        } catch (error) {
+          console.error("Error calling mercadopagoPayment:", error);
+          alert("Ocurrió un error inesperado al procesar el pago.");
+          setIsProcessing(false);
+          setIsCheckingOut(false);
+        }
+      } else if (paymentMethod === "transfer") {
+        // Lógica para el método de pago por transferencia bancaria
+        // La orden ya está guardada en Supabase con estado 'pending'
+        console.log("Procesando pago por transferencia bancaria...");
+        // Aquí podrías mostrar un modal con instrucciones o redirigir a una página de confirmación
+        // con los datos bancarios y el orderId generado.
+        setOrderComplete(true);
+        clearCart(); // Limpiar el carrito una vez que la orden se procesa
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error("Error inesperado durante el checkout:", error);
+      alert("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
+      setIsProcessing(false);
+      setIsCheckingOut(false);
     }
   };
 
-  if (state.items.length === 0) {
+  // ... (el resto de tu componente CartPage, incluyendo validateForm, handleInputChange, handleNextStep, handlePreviousStep)
+
+  const validateForm = () => {
+    const newErrors: Partial<CustomerInfo> = {};
+
+    if (!customerInfo.firstName.trim())
+      newErrors.firstName = "El nombre es requerido";
+    if (!customerInfo.lastName.trim())
+      newErrors.lastName = "El apellido es requerido";
+    if (!customerInfo.email.trim()) newErrors.email = "El email es requerido";
+    if (!customerInfo.phone.trim())
+      newErrors.phone = "El teléfono es requerido";
+
+    if (deliveryMethod === "shipping") {
+      if (!customerInfo.address.trim())
+        newErrors.address = "La dirección es requerida";
+      if (!customerInfo.city.trim()) newErrors.city = "La ciudad es requerida";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (customerInfo.email && !emailRegex.test(customerInfo.email)) {
+      newErrors.email = "Formato de email inválido";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (field: keyof CustomerInfo, value: string) => {
+    setCustomerInfo((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 1 && validateForm()) {
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
+      setCurrentStep(3);
+    }
+  };
+
+  const handlePreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  if (state.items.length === 0 && !orderComplete) {
     return (
       <>
         <main className="pt-16 min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
@@ -96,371 +281,743 @@ export default function CartPage() {
     );
   }
 
+  if (orderComplete) {
+    return (
+      <>
+        <main className="pt-16 min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+          <div className="container mx-auto px-4 py-20">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center max-w-2xl mx-auto"
+            >
+              <div className="w-32 h-32 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
+                <CheckCircle2 className="text-white" size={60} />
+              </div>
+              <h1 className="text-4xl font-serif mb-4 text-stone-800">
+                ¡Pedido Confirmado!
+              </h1>
+              <p className="text-xl text-gray-700 mb-8">
+                Gracias por tu compra. Te contactaremos pronto para coordinar{" "}
+                {deliveryMethod === "pickup" ? "el retiro" : "la entrega"}.
+              </p>
+
+              <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
+                <h2 className="text-2xl font-serif mb-4">
+                  Resumen de tu pedido
+                </h2>
+                <div className="space-y-4 text-left">
+                  <div className="flex justify-between">
+                    <span>Total pagado:</span>
+                    <span className="font-bold text-2xl">
+                      {formatPrice(calculateTotal())}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Método de entrega:</span>
+                    <span>
+                      {deliveryMethod === "pickup"
+                        ? "Retiro en taller"
+                        : "Envío a domicilio"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Método de pago:</span>
+                    <span>
+                      {paymentMethod === "mercadopago"
+                        ? "Mercado Pago"
+                        : "Transferencia bancaria"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/galeria">
+                  <Button variant="outline" className="px-8 bg-transparent">
+                    Seguir Comprando
+                  </Button>
+                </Link>
+                <Link href="/contacto">
+                  <Button className="bg-stone-800 hover:bg-stone-700 px-8">
+                    Contactar Soporte
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
-      <main className="pt-0 md:pt-16 min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
-        <div className="container mx-auto px-4 py-4">
-          {/* Header mejorado */}
+      <main className="pt-16 min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header con progreso */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="block md:flex items-center justify-between mb-8 bg-white rounded-2xl p-6 shadow-sm"
+            className="mb-8"
           >
-            <div className="flex  items-center">
-              <Link href="/galeria" className="mr-4">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <ArrowLeft size={20} />
-                </Button>
-              </Link>
-              <div className="flex flex-col">
-                <h1 className="text-3xl font-serif text-stone-800">
-                  Carrito de Compras
-                </h1>
-                <p className="text-gray-600">
-                  Revisa tus productos antes de continuar
-                </p>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center">
+                <Link href="/galeria" className="mr-4">
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <ArrowLeft size={20} />
+                  </Button>
+                </Link>
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-serif text-stone-800">
+                    Finalizar Compra
+                  </h1>
+                  <p className="text-gray-600">
+                    Completa tu pedido en {3 - currentStep + 1} pasos
+                  </p>
+                </div>
               </div>
+            </div>
+
+            {/* Indicador de progreso */}
+            <div className="flex items-center justify-center space-x-4 mb-8">
+              {[1, 2, 3].map((step) => (
+                <div key={step} className="flex items-center">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                      step <= currentStep
+                        ? "bg-stone-800 text-white"
+                        : "bg-gray-200 text-gray-500"
+                    }`}
+                  >
+                    {step}
+                  </div>
+                  {step < 3 && (
+                    <div
+                      className={`w-16 h-1 mx-2 transition-colors ${
+                        step < currentStep ? "bg-stone-800" : "bg-gray-200"
+                      }`}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center text-sm text-gray-600">
+              {currentStep === 1 && "Información personal"}
+              {currentStep === 2 && "Entrega y pago"}
+              {currentStep === 3 && "Confirmación"}
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            {/* Lista de productos mejorada */}
-            <div className="xl:col-span-2">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <Card className="shadow-sm border-0 bg-white/80 backdrop-blur">
-                  <CardHeader className="pb-3 md:pb-4">
-                    <CardTitle className="flex items-center text-lg md:text-xl gap-2">
-                      <ShoppingBag className="text-stone-600" size={20} />
-                      <span className="sm:inline">Productos en tu carrito</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-3 md:px-6">
-                    <AnimatePresence>
-                      <div className="space-y-3 md:space-y-6">
-                        {state.items.map((item, index) => (
-                          <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, x: -100 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="group bg-gradient-to-r from-white to-stone-50 rounded-xl md:rounded-2xl p-3 md:p-6 border border-stone-200 hover:shadow-md transition-all duration-300"
-                          >
-                            <div className="flex items-center gap-3 md:gap-6">
-                              {/* Product Image */}
-                              <div className="relative w-16 h-16 md:w-24 md:h-24 flex-shrink-0 rounded-lg md:rounded-xl overflow-hidden bg-stone-100">
-                                <img
-                                  src={item.imageSrc || "/placeholder.svg"}
-                                  alt={item.name}
-                                  className="absolute inset-0 w-full h-full object-cover"
-                                />
-                              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Formulario principal */}
+            <div className="lg:col-span-2">
+              <AnimatePresence mode="wait">
+                {/* Paso 1: Información del cliente */}
+                {currentStep === 1 && (
+                  <motion.div
+                    key="step1"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                  >
+                    <Card className="shadow-lg border-0 bg-white">
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-xl">
+                          <User className="mr-2 text-stone-600" size={24} />
+                          Información Personal
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="firstName">Nombre *</Label>
+                            <Input
+                              id="firstName"
+                              value={customerInfo.firstName}
+                              onChange={(e) =>
+                                handleInputChange("firstName", e.target.value)
+                              }
+                              className={
+                                errors.firstName ? "border-red-500" : ""
+                              }
+                              placeholder="Tu nombre"
+                            />
+                            {errors.firstName && (
+                              <p className="text-red-500 text-sm mt-1 flex items-center">
+                                <AlertCircle size={14} className="mr-1" />
+                                {errors.firstName}
+                              </p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="lastName">Apellido *</Label>
+                            <Input
+                              id="lastName"
+                              value={customerInfo.lastName}
+                              onChange={(e) =>
+                                handleInputChange("lastName", e.target.value)
+                              }
+                              className={
+                                errors.lastName ? "border-red-500" : ""
+                              }
+                              placeholder="Tu apellido"
+                            />
+                            {errors.lastName && (
+                              <p className="text-red-500 text-sm mt-1 flex items-center">
+                                <AlertCircle size={14} className="mr-1" />
+                                {errors.lastName}
+                              </p>
+                            )}
+                          </div>
+                        </div>
 
-                              {/* Product Info */}
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-base md:text-xl font-medium text-gray-900 mb-1 md:mb-2 line-clamp-2">
-                                  {item.name}
-                                </h3>
-                                <div className="flex flex-wrap gap-1 md:gap-2 mb-2 md:mb-3">
-                                  {item.materials.map((material, idx) => (
-                                    <Badge
-                                      key={idx}
-                                      variant="outline"
-                                      className="text-xs bg-stone-100 px-2 py-0.5"
-                                    >
-                                      {material}
-                                    </Badge>
-                                  ))}
-                                </div>
-                                <p className="text-xs md:text-sm text-gray-500 capitalize hidden md:block">
-                                  Categoría: {item.category}
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email *</Label>
+                          <div className="relative">
+                            <Mail
+                              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                              size={18}
+                            />
+                            <Input
+                              id="email"
+                              type="email"
+                              value={customerInfo.email}
+                              onChange={(e) =>
+                                handleInputChange("email", e.target.value)
+                              }
+                              className={`pl-10 ${
+                                errors.email ? "border-red-500" : ""
+                              }`}
+                              placeholder="tu@email.com"
+                            />
+                          </div>
+                          {errors.email && (
+                            <p className="text-red-500 text-sm mt-1 flex items-center">
+                              <AlertCircle size={14} className="mr-1" />
+                              {errors.email}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Teléfono *</Label>
+                          <div className="relative">
+                            <Phone
+                              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                              size={18}
+                            />
+                            <Input
+                              id="phone"
+                              value={customerInfo.phone}
+                              onChange={(e) =>
+                                handleInputChange("phone", e.target.value)
+                              }
+                              className={`pl-10 ${
+                                errors.phone ? "border-red-500" : ""
+                              }`}
+                              placeholder="+598 99 123 456"
+                            />
+                          </div>
+                          {errors.phone && (
+                            <p className="text-red-500 text-sm mt-1 flex items-center">
+                              <AlertCircle size={14} className="mr-1" />
+                              {errors.phone}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="address">
+                            Dirección {deliveryMethod === "shipping" && "*"}
+                          </Label>
+                          <div className="relative">
+                            <Home
+                              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                              size={18}
+                            />
+                            <Input
+                              id="address"
+                              value={customerInfo.address}
+                              onChange={(e) =>
+                                handleInputChange("address", e.target.value)
+                              }
+                              className={`pl-10 ${
+                                errors.address ? "border-red-500" : ""
+                              }`}
+                              placeholder="Calle, número, apartamento"
+                            />
+                          </div>
+                          {errors.address && (
+                            <p className="text-red-500 text-sm mt-1 flex items-center">
+                              <AlertCircle size={14} className="mr-1" />
+                              {errors.address}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="city">
+                              Ciudad {deliveryMethod === "shipping" && "*"}
+                            </Label>
+                            <Input
+                              id="city"
+                              value={customerInfo.city}
+                              onChange={(e) =>
+                                handleInputChange("city", e.target.value)
+                              }
+                              className={errors.city ? "border-red-500" : ""}
+                              placeholder="Montevideo"
+                            />
+                            {errors.city && (
+                              <p className="text-red-500 text-sm mt-1 flex items-center">
+                                <AlertCircle size={14} className="mr-1" />
+                                {errors.city}
+                              </p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="postalCode">Código Postal</Label>
+                            <Input
+                              id="postalCode"
+                              value={customerInfo.postalCode}
+                              onChange={(e) =>
+                                handleInputChange("postalCode", e.target.value)
+                              }
+                              placeholder="11000"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="notes">
+                            Notas adicionales (opcional)
+                          </Label>
+                          <Textarea
+                            id="notes"
+                            value={customerInfo.notes}
+                            onChange={(e) =>
+                              handleInputChange("notes", e.target.value)
+                            }
+                            placeholder="Instrucciones especiales, referencias de ubicación, etc."
+                            rows={3}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+
+                {/* Paso 2: Entrega y pago */}
+                {currentStep === 2 && (
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
+                    {/* Método de entrega */}
+                    <Card className="shadow-lg border-0 bg-white">
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-xl">
+                          <Truck className="mr-2 text-stone-600" size={24} />
+                          Método de Entrega
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <RadioGroup
+                          value={deliveryMethod}
+                          onValueChange={(value: "shipping" | "pickup") =>
+                            setDeliveryMethod(value)
+                          }
+                        >
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-stone-50 transition-colors">
+                              <RadioGroupItem value="shipping" id="shipping" />
+                              <div className="flex-1">
+                                <Label
+                                  htmlFor="shipping"
+                                  className="flex items-center cursor-pointer"
+                                >
+                                  <Truck
+                                    className="mr-2 text-stone-600"
+                                    size={20}
+                                  />
+                                  <div>
+                                    <p className="font-medium">
+                                      Envío a domicilio
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                      Recibe tu pedido en la comodidad de tu
+                                      hogar
+                                    </p>
+                                  </div>
+                                </Label>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-medium">
+                                  {getShipping() === 0
+                                    ? "Gratis"
+                                    : formatPrice(getShipping())}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  3-5 días hábiles
                                 </p>
                               </div>
-
-                              {/* Mobile: Price and Actions Horizontally Aligned */}
-                              <div className="flex items-center gap-3 md:hidden">
-                                {/* Quantity Controls */}
-                                <div className="flex items-center bg-stone-100 rounded-full p-0.5">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 rounded-full hover:bg-white"
-                                    onClick={() =>
-                                      updateQuantity(item.id, item.quantity - 1)
-                                    }
-                                  >
-                                    <Minus size={14} />
-                                  </Button>
-                                  <span className="w-8 text-center font-semibold text-sm">
-                                    {item.quantity}
-                                  </span>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 rounded-full hover:bg-white"
-                                    onClick={() =>
-                                      updateQuantity(item.id, item.quantity + 1)
-                                    }
-                                  >
-                                    <Plus size={14} />
-                                  </Button>
-                                </div>
-
-                                {/* Pricing */}
-                                <div className="text-right">
-                                  <p className="text-lg font-bold text-stone-800">
-                                    {formatPrice(item.price * item.quantity)}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    {formatPrice(item.price)} c/u
-                                  </p>
-                                </div>
-                              </div>
-
-                              {/* Desktop: Quantity Controls */}
-                              <div className="hidden md:flex flex-col items-center gap-2">
-                                <div className="flex items-center bg-stone-100 rounded-full p-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-10 w-10 rounded-full hover:bg-white"
-                                    onClick={() =>
-                                      updateQuantity(item.id, item.quantity - 1)
-                                    }
-                                  >
-                                    <Minus size={16} />
-                                  </Button>
-                                  <span className="w-12 text-center font-semibold text-lg">
-                                    {item.quantity}
-                                  </span>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-10 w-10 rounded-full hover:bg-white"
-                                    onClick={() =>
-                                      updateQuantity(item.id, item.quantity + 1)
-                                    }
-                                  >
-                                    <Plus size={16} />
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {/* Desktop: Price */}
-                              <div className="hidden md:block text-right">
-                                <p className="text-2xl font-bold text-stone-800">
-                                  {formatPrice(item.price * item.quantity)}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {formatPrice(item.price)} c/u
-                                </p>
-                              </div>
-
-                              {/* Desktop: Delete Button */}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="hidden md:flex group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full"
-                                onClick={() => removeItem(item.id)}
-                              >
-                                <Trash2 size={20} />
-                              </Button>
                             </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </AnimatePresence>
-                  </CardContent>
-                </Card>
-              </motion.div>
+
+                            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-stone-50 transition-colors">
+                              <RadioGroupItem value="pickup" id="pickup" />
+                              <div className="flex-1">
+                                <Label
+                                  htmlFor="pickup"
+                                  className="flex items-center cursor-pointer"
+                                >
+                                  <MapPin
+                                    className="mr-2 text-stone-600"
+                                    size={20}
+                                  />
+                                  <div>
+                                    <p className="font-medium">
+                                      Retiro en taller
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                      Montevideo, Pocitos - Coordinaremos
+                                      horario
+                                    </p>
+                                  </div>
+                                </Label>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-medium text-green-600">
+                                  Gratis
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  Disponible hoy
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </RadioGroup>
+                      </CardContent>
+                    </Card>
+
+                    {/* Método de pago */}
+                    <Card className="shadow-lg border-0 bg-white">
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-xl">
+                          <CreditCard
+                            className="mr-2 text-stone-600"
+                            size={24}
+                          />
+                          Método de Pago
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <RadioGroup
+                          value={paymentMethod}
+                          onValueChange={(value: "mercadopago" | "transfer") =>
+                            setPaymentMethod(value)
+                          }
+                        >
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-stone-50 transition-colors">
+                              <RadioGroupItem
+                                value="mercadopago"
+                                id="mercadopago"
+                              />
+                              <div className="flex-1">
+                                <Label
+                                  htmlFor="mercadopago"
+                                  className="flex items-center cursor-pointer"
+                                >
+                                  <div className="w-8 h-8 bg-blue-600 rounded mr-3 flex items-center justify-center">
+                                    <CreditCard
+                                      className="text-white"
+                                      size={16}
+                                    />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium">Mercado Pago</p>
+                                    <p className="text-sm text-gray-600">
+                                      Tarjeta de crédito, débito o dinero en
+                                      cuenta
+                                    </p>
+                                  </div>
+                                </Label>
+                              </div>
+                              <Badge
+                                variant="secondary"
+                                className="bg-green-100 text-green-800"
+                              >
+                                Recomendado
+                              </Badge>
+                            </div>
+
+                            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-stone-50 transition-colors">
+                              <RadioGroupItem value="transfer" id="transfer" />
+                              <div className="flex-1">
+                                <Label
+                                  htmlFor="transfer"
+                                  className="flex items-center cursor-pointer"
+                                >
+                                  <div className="w-8 h-8 bg-stone-600 rounded mr-3 flex items-center justify-center">
+                                    <Banknote
+                                      className="text-white"
+                                      size={16}
+                                    />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium">
+                                      Transferencia Bancaria
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                      Te enviaremos los datos bancarios por
+                                      email
+                                    </p>
+                                  </div>
+                                </Label>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-gray-500">
+                                  1-2 días para procesar
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </RadioGroup>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+
+                {/* Paso 3: Confirmación */}
+                {currentStep === 3 && (
+                  <motion.div
+                    key="step3"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                  >
+                    <Card className="shadow-lg border-0 bg-white">
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-xl">
+                          <CheckCircle2
+                            className="mr-2 text-stone-600"
+                            size={24}
+                          />
+                          Confirmar Pedido
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Resumen de información */}
+                        <div className="bg-stone-50 rounded-lg p-4">
+                          <h3 className="font-medium mb-3">
+                            Información de contacto
+                          </h3>
+                          <div className="space-y-2 text-sm">
+                            <p>
+                              <strong>Nombre:</strong> {customerInfo.firstName}{" "}
+                              {customerInfo.lastName}
+                            </p>
+                            <p>
+                              <strong>Email:</strong> {customerInfo.email}
+                            </p>
+                            <p>
+                              <strong>Teléfono:</strong> {customerInfo.phone}
+                            </p>
+                            {deliveryMethod === "shipping" &&
+                              customerInfo.address && (
+                                <p>
+                                  <strong>Dirección:</strong>{" "}
+                                  {customerInfo.address}, {customerInfo.city}
+                                </p>
+                              )}
+                          </div>
+                        </div>
+
+                        <div className="bg-stone-50 rounded-lg p-4">
+                          <h3 className="font-medium mb-3">
+                            Detalles del pedido
+                          </h3>
+                          <div className="space-y-2 text-sm">
+                            <p>
+                              <strong>Entrega:</strong>{" "}
+                              {deliveryMethod === "pickup"
+                                ? "Retiro en taller"
+                                : "Envío a domicilio"}
+                            </p>
+                            <p>
+                              <strong>Pago:</strong>{" "}
+                              {paymentMethod === "mercadopago"
+                                ? "Mercado Pago"
+                                : "Transferencia bancaria"}
+                            </p>
+                            <p>
+                              <strong>Total:</strong>{" "}
+                              <span className="text-lg font-bold">
+                                {formatPrice(calculateTotal())}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Términos y condiciones */}
+                        <div className="flex items-start space-x-3">
+                          <Checkbox
+                            id="terms"
+                            checked={acceptTerms}
+                            onCheckedChange={(checked) =>
+                              setAcceptTerms(checked as boolean)
+                            }
+                          />
+                          <Label
+                            htmlFor="terms"
+                            className="text-sm leading-relaxed cursor-pointer"
+                          >
+                            Entiendo que recibiré información sobre mi pedido
+                            por email y WhatsApp.
+                          </Label>
+                        </div>
+
+                        {/* Información de seguridad */}
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <div className="flex items-center">
+                            <Shield className="text-green-600 mr-2" size={20} />
+                            <div>
+                              <p className="font-medium text-green-800">
+                                Compra segura
+                              </p>
+                              <p className="text-sm text-green-700">
+                                Tus datos están protegidos y tu compra tiene
+                                garantía de 6 meses.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Botones de navegación */}
+              <div className="flex justify-between mt-8">
+                <Button
+                  variant="outline"
+                  onClick={handlePreviousStep}
+                  disabled={currentStep === 1}
+                  className="px-8 bg-transparent"
+                >
+                  Anterior
+                </Button>
+
+                {currentStep < 3 ? (
+                  <Button
+                    onClick={handleNextStep}
+                    className="bg-stone-800 hover:bg-stone-700 px-8"
+                  >
+                    Continuar
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleCheckout}
+                    disabled={!acceptTerms || isProcessing}
+                    className="bg-stone-800 hover:bg-stone-700 px-8"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="mr-2" size={18} />
+                        Confirmar Pedido
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
 
-            {/* Sidebar de resumen mejorado */}
-            <div className="space-y-6">
-              {/* Código promocional mejorado */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Card className="shadow-sm border-0 bg-white/80 backdrop-blur">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center text-lg">
-                      <Tag className="mr-2 text-stone-600" size={20} />
-                      Código Promocional
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {promoApplied ? (
-                      <div className="flex items-center p-4 bg-green-50 border border-green-200 rounded-xl">
-                        <CheckCircle2
-                          className="text-green-600 mr-2"
-                          size={20}
-                        />
-                        <span className="text-green-700 font-medium">
-                          ¡Código aplicado!
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="flex space-x-2">
-                        <Input
-                          placeholder="Ingresa tu código"
-                          value={promoCode}
-                          onChange={(e) => setPromoCode(e.target.value)}
-                          className="border-stone-300"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={handlePromoCode}
-                          className="px-6"
-                        >
-                          Aplicar
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
+            {/* Sidebar de resumen */}
+            <div className="lg:sticky lg:top-24 lg:h-fit">
+              <Card className="shadow-lg border-0 bg-white">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <Package className="mr-2 text-stone-600" size={20} />
+                    Resumen del Pedido
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Lista de productos */}
 
-              {/* Resumen mejorado */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-stone-50">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-xl">
-                      Resumen del Pedido
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between text-lg">
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {state.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center space-x-3 p-2 bg-stone-50 rounded-lg"
+                      >
+                        <div className="relative w-12 h-12 flex-shrink-0 rounded-md overflow-hidden">
+                          <img
+                            src={item.imageSrc || "/placeholder.svg"}
+                            alt={item.name}
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Cantidad: {item.quantity}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Separator />
+
+                  {/* Cálculos */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
                       <span>Subtotal</span>
-                      <span className="font-semibold">
-                        {formatPrice(getTotalPrice())}
-                      </span>
+                      <span>{formatPrice(getTotalPrice())}</span>
                     </div>
-
-                    <div className="flex justify-between items-center">
-                      <span className="flex items-center">
-                        <Truck size={18} className="mr-2 text-stone-600" />
-                        Envío
-                      </span>
+                    <div className="flex justify-between text-sm">
+                      <span>Envío</span>
                       <span
                         className={
-                          getShipping() === 0
-                            ? "text-green-600 font-semibold"
+                          calculateShipping() === 0
+                            ? "text-green-600 font-medium"
                             : ""
                         }
                       >
-                        {getShipping() === 0
-                          ? "¡Gratis!"
-                          : formatPrice(getShipping())}
+                        {calculateShipping() === 0
+                          ? "Gratis"
+                          : formatPrice(calculateShipping())}
                       </span>
                     </div>
+                  </div>
 
-                    {getShipping() === 0 && (
-                      <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                        <p className="text-sm text-green-700 text-center">
-                          🎉 Envío gratis en compras superiores a $2000
-                        </p>
-                      </div>
-                    )}
+                  <Separator />
 
-                    <Separator className="my-4" />
-
-                    <div className="flex justify-between text-2xl font-bold">
-                      <span>Total</span>
-                      <span className="text-stone-800">
-                        {formatPrice(getFinalTotal())}
-                      </span>
-                    </div>
-
-                    <Button
-                      className="w-full bg-stone-800 hover:bg-stone-700 py-6 text-lg font-medium"
-                      onClick={handleCheckout}
-                      disabled={isCheckingOut}
-                    >
-                      {isCheckingOut ? (
-                        <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Procesando...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="mr-2" size={20} />
-                          Proceder al Pago
-                        </>
-                      )}
-                    </Button>
-
-                    <div className="text-xs text-gray-500 text-center space-y-1">
-                      <p>Métodos de pago aceptados:</p>
-                      <p className="font-medium">
-                        Transferencia • Mercado Pago • Efectivo
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Información adicional mejorada */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <Card className="shadow-sm border-0 bg-white/80 backdrop-blur">
-                  <CardContent className="pt-6">
-                    <div className="space-y-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center">
-                          <Truck className="text-stone-600" size={18} />
-                        </div>
-                        <div>
-                          <p className="font-medium text-stone-800">
-                            Envío seguro
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Empaque especial para joyería
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <div className="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center">
-                          <Shield className="text-stone-600" size={18} />
-                        </div>
-                        <div>
-                          <p className="font-medium text-stone-800">
-                            Compra protegida
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Garantía de 6 meses
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <div className="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center">
-                          <Gift className="text-stone-600" size={18} />
-                        </div>
-                        <div>
-                          <p className="font-medium text-stone-800">
-                            Empaque regalo
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Sin costo adicional
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total</span>
+                    <span>{formatPrice(calculateTotal())}</span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
