@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useState,
+} from "react";
 
 export interface CartItem {
   id: number;
@@ -120,6 +126,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     isOpen: false,
   });
 
+  const [isClient, setIsClient] = useState(false);
   // Cargar carrito desde localStorage al inicializar
   useEffect(() => {
     const savedCart = localStorage.getItem("adrianacostaorfebre-cart");
@@ -131,6 +138,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         console.error("Error loading cart from localStorage:", error);
       }
     }
+    setIsClient(true);
   }, []);
 
   // Guardar carrito en localStorage cuando cambie
@@ -139,7 +147,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       "adrianacostaorfebre-cart",
       JSON.stringify(state.items)
     );
-  }, [state.items]);
+  }, [state.items, isClient]);
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
     dispatch({ type: "ADD_ITEM", payload: item });
@@ -188,7 +196,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const getFinalTotal = () => {
     return getTotalPrice() + getShipping();
   };
-
+  if (!isClient) {
+    return null; // Or a simple loading indicator
+  }
   return (
     <CartContext.Provider
       value={{

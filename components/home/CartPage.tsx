@@ -1,7 +1,6 @@
 "use client";
 import { mercadopagoPayment } from "@/app/actions/mercadopago-payment";
 import { createOrder, OrderData } from "@/app/actions/transfer-orders";
-import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +29,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface CustomerInfo {
   firstName: string;
@@ -43,29 +43,9 @@ interface CustomerInfo {
 }
 
 export default function CartPage() {
-  const {
-    state,
-    getTotalPrice,
-    getShipping,
-    clearCart, // Asegúrate de tener una función para limpiar el carrito
-  } = useCart();
+  const { state, getTotalPrice, getShipping, clearCart } = useCart();
   //const [promoCode, setPromoCode] = useState("");
   //const [promoApplied, setPromoApplied] = useState(false);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-UY", {
-      style: "currency",
-      currency: "UYU",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  //const handlePromoCode = () => {
-  //if (promoCode.toLowerCase() === "bienvenido") {
-  //setPromoApplied(true);
-  //}
-  //setPromoCode("");
-  //};
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -73,10 +53,10 @@ export default function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState<
     "mercadopago" | "transfer"
   >("mercadopago");
-
-  // Estado para guardar el ID de la orden
   const [orderId, setOrderId] = useState<string | null>(null);
   console.log(orderId);
+
+  const [confirmedOrderTotal, setConfirmedOrderTotal] = useState(0);
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     firstName: "",
@@ -96,37 +76,62 @@ export default function CartPage() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState<Partial<CustomerInfo>>({});
 
+  useEffect(() => {
+    if (
+      orderComplete &&
+      paymentMethod === "transfer" &&
+      state.items.length > 0
+    ) {
+      clearCart();
+    }
+  }, [orderComplete, paymentMethod, clearCart, state.items.length]);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("es-UY", {
+      style: "currency",
+      currency: "UYU",
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
+
+  //const handlePromoCode = () => {
+  //if (promoCode.toLowerCase() === "bienvenido") {
+  //setPromoApplied(true);
+  //}
+  //setPromoCode("");
+  //};
+
+  // Estado para guardar el ID de la orden
+
   const calculateShipping = () => {
     return deliveryMethod === "pickup" ? 0 : getShipping();
   };
 
   const calculateTotal = () => {
-    // Asegúrate de que getTotalPrice retorne un número
     return getTotalPrice() + calculateShipping();
   };
 
   const handleCheckout = async () => {
     setIsProcessing(true);
+    const currentCalculatedTotal = calculateTotal();
 
-    // Preparar los datos de la orden para la base de datos
     const orderData: OrderData = {
       items: state.items.map((item) => ({
         id: item.id.toString(),
         name: item.name,
         price: item.price,
         quantity: item.quantity,
-      })), // Array de objetos de producto
-      totalPrice: calculateTotal(),
+      })),
+      totalPrice: currentCalculatedTotal,
       customerInfo: customerInfo,
       deliveryMethod: deliveryMethod,
       promoApplied: false,
       shippingCost: calculateShipping(),
       notes: customerInfo.notes,
-      paymentMethod: paymentMethod, // Añadir el método de pago aquí
+      paymentMethod: paymentMethod,
     };
 
     try {
-      // ** 1. Guardar la orden en Supabase ANTES de la redirección de Mercado Pago **
       const {
         success,
         orderId: newOrderId,
@@ -134,22 +139,17 @@ export default function CartPage() {
       } = await createOrder(orderData);
 
       if (!success) {
-        // Manejar el error de Supabase
         console.error("Error al guardar la orden en Supabase:", error);
         alert("Hubo un error al procesar tu pedido. Intenta de nuevo.");
         setIsProcessing(false);
         return;
       }
 
-      setOrderId(newOrderId); // Guardar el ID de la orden para mostrarlo en la confirmación
+      setOrderId(newOrderId);
 
-      // ** 2. Continuar con la lógica de pago **
       if (paymentMethod === "mercadopago") {
         const formData = new FormData();
-        // Es importante que mercadopagoPayment reciba el orderId si lo necesita
-        // Considera pasar solo lo esencial a mercadopagoPayment, quizás solo el total y el ID de la orden
-        // para que Mercado Pago pueda asociar el pago a una orden específica en tu DB.
-        formData.append("orderId", newOrderId!); // Pasa el ID de la orden
+        formData.append("orderId", newOrderId!);
         formData.append("products", JSON.stringify(orderData.items));
         formData.append("totalPrice", orderData.totalPrice.toString());
         formData.append("customerInfo", JSON.stringify(orderData.customerInfo));
@@ -159,14 +159,11 @@ export default function CartPage() {
         formData.append("notes", orderData.notes);
 
         try {
-          // Call mercadopagoPayment with the orderData object
-          const result = await mercadopagoPayment(orderData); // This now returns an object
+          const result = await mercadopagoPayment(orderData);
 
           if (result && result.success && result.url) {
-            // If successful, redirect the user to the Mercado Pago payment URL
             window.location.href = result.url;
           } else {
-            // Handle the error case
             alert(
               `No se pudo generar el link de pago con Mercado Pago: ${
                 result?.error || "Error desconocido"
@@ -185,8 +182,9 @@ export default function CartPage() {
         console.log("Procesando pago por transferencia bancaria...");
         // Aquí podrías mostrar un modal con instrucciones o redirigir a una página de confirmación
         // con los datos bancarios y el orderId generado.
+        setConfirmedOrderTotal(currentCalculatedTotal);
         setOrderComplete(true);
-        clearCart(); // Limpiar el carrito una vez que la orden se procesa
+
         setIsProcessing(false);
       }
     } catch (error) {
@@ -195,8 +193,6 @@ export default function CartPage() {
       setIsProcessing(false);
     }
   };
-
-  // ... (el resto de tu componente CartPage, incluyendo validateForm, handleInputChange, handleNextStep, handlePreviousStep)
 
   const validateForm = () => {
     const newErrors: Partial<CustomerInfo> = {};
@@ -307,7 +303,7 @@ export default function CartPage() {
                   <div className="flex justify-between">
                     <span>Total pagado:</span>
                     <span className="font-bold text-2xl">
-                      {formatPrice(calculateTotal())}
+                      {formatPrice(confirmedOrderTotal)}
                     </span>
                   </div>
                   <div className="flex justify-between">
