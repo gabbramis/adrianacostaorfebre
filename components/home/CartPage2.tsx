@@ -1,4 +1,5 @@
-"use client";
+{
+  /*"use client";
 
 import { useState } from "react";
 import { mercadopagoPayment } from "@/app/actions/mercadopago-payment";
@@ -51,17 +52,17 @@ export default function CartPage() {
     }
   };
 
-  const handleCheckout = async () => {
-    setIsCheckingOut(true);
-    const formData = new FormData();
-    formData.append("productName", "Checkout");
-    formData.append("productPrice", getTotalPrice().toString());
-    formData.append("productQuantity", "1");
-    const url = await mercadopagoPayment(formData);
-    if (url) {
-      window.location.href = url;
-    }
-  };
+  // const handleCheckout = async () => {
+  //  setIsCheckingOut(true);
+  //  const formData = new FormData();
+  //  formData.append("productName", "Checkout");
+  //  formData.append("productPrice", getTotalPrice().toString());
+  //  formData.append("productQuantity", "1");
+  //  const url = await mercadopagoPayment(formData);
+  //  if (url) {
+  //    window.location.href = url;
+  //  }
+  //};
 
   if (state.items.length === 0) {
     return (
@@ -100,7 +101,7 @@ export default function CartPage() {
     <>
       <main className="pt-0 md:pt-16 min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
         <div className="container mx-auto px-4 py-4">
-          {/* Header mejorado */}
+          {/* Header mejorado 
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -124,7 +125,7 @@ export default function CartPage() {
           </motion.div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            {/* Lista de productos mejorada */}
+            {/* Lista de productos mejorada *
             <div className="xl:col-span-2">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -151,7 +152,7 @@ export default function CartPage() {
                             className="group bg-gradient-to-r from-white to-stone-50 rounded-xl md:rounded-2xl p-3 md:p-6 border border-stone-200 hover:shadow-md transition-all duration-300"
                           >
                             <div className="flex items-center gap-3 md:gap-6">
-                              {/* Product Image */}
+                              {/* Product Image *
                               <div className="relative w-16 h-16 md:w-24 md:h-24 flex-shrink-0 rounded-lg md:rounded-xl overflow-hidden bg-stone-100">
                                 <img
                                   src={item.imageSrc || "/placeholder.svg"}
@@ -160,7 +161,7 @@ export default function CartPage() {
                                 />
                               </div>
 
-                              {/* Product Info */}
+                              {/* Product Info *
                               <div className="flex-1 min-w-0">
                                 <h3 className="text-base md:text-xl font-medium text-gray-900 mb-1 md:mb-2 line-clamp-2">
                                   {item.name}
@@ -181,9 +182,9 @@ export default function CartPage() {
                                 </p>
                               </div>
 
-                              {/* Mobile: Price and Actions Horizontally Aligned */}
+                              {/* Mobile: Price and Actions Horizontally Aligned *
                               <div className="flex items-center gap-3 md:hidden">
-                                {/* Quantity Controls */}
+                                {/* Quantity Controls *
                                 <div className="flex items-center bg-stone-100 rounded-full p-0.5">
                                   <Button
                                     variant="ghost"
@@ -210,7 +211,7 @@ export default function CartPage() {
                                   </Button>
                                 </div>
 
-                                {/* Pricing */}
+                                {/* Pricing *
                                 <div className="text-right">
                                   <p className="text-lg font-bold text-stone-800">
                                     {formatPrice(item.price * item.quantity)}
@@ -221,7 +222,7 @@ export default function CartPage() {
                                 </div>
                               </div>
 
-                              {/* Desktop: Quantity Controls */}
+                              {/* Desktop: Quantity Controls *
                               <div className="hidden md:flex flex-col items-center gap-2">
                                 <div className="flex items-center bg-stone-100 rounded-full p-1">
                                   <Button
@@ -250,7 +251,7 @@ export default function CartPage() {
                                 </div>
                               </div>
 
-                              {/* Desktop: Price */}
+                              {/* Desktop: Price *}
                               <div className="hidden md:block text-right">
                                 <p className="text-2xl font-bold text-stone-800">
                                   {formatPrice(item.price * item.quantity)}
@@ -260,7 +261,7 @@ export default function CartPage() {
                                 </p>
                               </div>
 
-                              {/* Desktop: Delete Button */}
+                              {/* Desktop: Delete Button  *}
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -279,9 +280,9 @@ export default function CartPage() {
               </motion.div>
             </div>
 
-            {/* Sidebar de resumen mejorado */}
+            {/* Sidebar de resumen mejorado *
             <div className="space-y-6">
-              {/* Código promocional mejorado */}
+              {/* Código promocional mejorado *
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -326,7 +327,7 @@ export default function CartPage() {
                 </Card>
               </motion.div>
 
-              {/* Resumen mejorado */}
+              {/* Resumen mejorado *}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -381,7 +382,7 @@ export default function CartPage() {
                       </span>
                     </div>
 
-                    <Button
+                    {/* <Button
                       className="w-full bg-stone-800 hover:bg-stone-700 py-6 text-lg font-medium"
                       onClick={handleCheckout}
                       disabled={isCheckingOut}
@@ -409,7 +410,7 @@ export default function CartPage() {
                 </Card>
               </motion.div>
 
-              {/* Información adicional mejorada */}
+              {/* Información adicional mejorada *}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -467,4 +468,6 @@ export default function CartPage() {
       </main>
     </>
   );
+}
+*/
 }

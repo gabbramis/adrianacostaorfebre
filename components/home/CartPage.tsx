@@ -49,9 +49,8 @@ export default function CartPage() {
     getShipping,
     clearCart, // Asegúrate de tener una función para limpiar el carrito
   } = useCart();
-  const [promoCode, setPromoCode] = useState("");
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [promoApplied, setPromoApplied] = useState(false);
+  //const [promoCode, setPromoCode] = useState("");
+  //const [promoApplied, setPromoApplied] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-UY", {
@@ -61,11 +60,13 @@ export default function CartPage() {
     }).format(price);
   };
 
-  const handlePromoCode = () => {
-    if (promoCode.toLowerCase() === "bienvenido") {
-      setPromoApplied(true);
-    }
-  };
+  //const handlePromoCode = () => {
+  //if (promoCode.toLowerCase() === "bienvenido") {
+  //setPromoApplied(true);
+  //}
+  //setPromoCode("");
+  //};
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
@@ -75,6 +76,7 @@ export default function CartPage() {
 
   // Estado para guardar el ID de la orden
   const [orderId, setOrderId] = useState<string | null>(null);
+  console.log(orderId);
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     firstName: "",
@@ -104,7 +106,6 @@ export default function CartPage() {
   };
 
   const handleCheckout = async () => {
-    setIsCheckingOut(true);
     setIsProcessing(true);
 
     // Preparar los datos de la orden para la base de datos
@@ -118,7 +119,7 @@ export default function CartPage() {
       totalPrice: calculateTotal(),
       customerInfo: customerInfo,
       deliveryMethod: deliveryMethod,
-      promoApplied: promoApplied,
+      promoApplied: false,
       shippingCost: calculateShipping(),
       notes: customerInfo.notes,
       paymentMethod: paymentMethod, // Añadir el método de pago aquí
@@ -137,7 +138,6 @@ export default function CartPage() {
         console.error("Error al guardar la orden en Supabase:", error);
         alert("Hubo un error al procesar tu pedido. Intenta de nuevo.");
         setIsProcessing(false);
-        setIsCheckingOut(false);
         return;
       }
 
@@ -154,7 +154,7 @@ export default function CartPage() {
         formData.append("totalPrice", orderData.totalPrice.toString());
         formData.append("customerInfo", JSON.stringify(orderData.customerInfo));
         formData.append("deliveryMethod", orderData.deliveryMethod);
-        formData.append("promoApplied", orderData.promoApplied.toString());
+        formData.append("promoApplied", "false");
         formData.append("shippingCost", orderData.shippingCost.toString());
         formData.append("notes", orderData.notes);
 
@@ -173,13 +173,11 @@ export default function CartPage() {
               }`
             );
             setIsProcessing(false);
-            setIsCheckingOut(false);
           }
         } catch (error) {
           console.error("Error calling mercadopagoPayment:", error);
           alert("Ocurrió un error inesperado al procesar el pago.");
           setIsProcessing(false);
-          setIsCheckingOut(false);
         }
       } else if (paymentMethod === "transfer") {
         // Lógica para el método de pago por transferencia bancaria
@@ -195,7 +193,6 @@ export default function CartPage() {
       console.error("Error inesperado durante el checkout:", error);
       alert("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
       setIsProcessing(false);
-      setIsCheckingOut(false);
     }
   };
 

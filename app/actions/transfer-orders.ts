@@ -163,8 +163,12 @@ export async function createOrder(orderData: OrderData) {
     }
 
     return { success: true, orderId: orderId };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     console.error("General error in createOrder:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorMessage };
   }
 }

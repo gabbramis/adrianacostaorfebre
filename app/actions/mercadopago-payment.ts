@@ -5,6 +5,7 @@
 import { MercadoPagoConfig, Preference } from "mercadopago";
 import { createSupabaseServer } from "@/utils/supabase/server";
 import { createOrder, OrderData } from "./transfer-orders"; // Import OrderData type
+import process from "process";
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.ML_ACCESS_TOKEN!,
@@ -112,8 +113,12 @@ export async function mercadopagoPayment(orderData: OrderData) {
       orderId: orderId,
       preferenceId: preferenceId,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     console.error("Error in Mercado Pago payment processing:", error);
-    return { success: false, error: error.message, url: null };
+    return { success: false, error: errorMessage, url: null };
   }
 }
