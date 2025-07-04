@@ -30,6 +30,7 @@ import {
 import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import OrderConfirmation from "./OrderConfirmation";
 
 interface CustomerInfo {
   firstName: string;
@@ -276,71 +277,13 @@ export default function CartPage() {
 
   if (orderComplete) {
     return (
-      <>
-        <main className="pt-16 min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-          <div className="container mx-auto px-4 py-20">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center max-w-2xl mx-auto"
-            >
-              <div className="w-32 h-32 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
-                <CheckCircle2 className="text-white" size={60} />
-              </div>
-              <h1 className="text-4xl font-serif mb-4 text-stone-800">
-                ¡Pedido Confirmado!
-              </h1>
-              <p className="text-xl text-gray-700 mb-8">
-                Gracias por tu compra. Te contactaremos pronto para coordinar{" "}
-                {deliveryMethod === "pickup" ? "el retiro" : "la entrega"}.
-              </p>
-
-              <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
-                <h2 className="text-2xl font-serif mb-4">
-                  Resumen de tu pedido
-                </h2>
-                <div className="space-y-4 text-left">
-                  <div className="flex justify-between">
-                    <span>Total pagado:</span>
-                    <span className="font-bold text-2xl">
-                      {formatPrice(confirmedOrderTotal)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Método de entrega:</span>
-                    <span>
-                      {deliveryMethod === "pickup"
-                        ? "Retiro en taller"
-                        : "Envío a domicilio"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Método de pago:</span>
-                    <span>
-                      {paymentMethod === "mercadopago"
-                        ? "Mercado Pago"
-                        : "Transferencia bancaria"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/galeria">
-                  <Button variant="outline" className="px-8 bg-transparent">
-                    Seguir Comprando
-                  </Button>
-                </Link>
-                <Link href="/contacto">
-                  <Button className="bg-stone-800 hover:bg-stone-700 px-8">
-                    Contactar Soporte
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        </main>
-      </>
+      <OrderConfirmation
+        orderId={orderId}
+        deliveryMethod={deliveryMethod}
+        paymentMethod={paymentMethod}
+        confirmedOrderTotal={confirmedOrderTotal}
+        formatPrice={formatPrice}
+      />
     );
   }
 
