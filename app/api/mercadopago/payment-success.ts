@@ -75,7 +75,7 @@ export default async function handler(
         const { error: updateError } = await supabase
           .from("orders")
           .update({
-            status: "paid", // Cambia el estado de la orden a 'pagado'
+            status: "pagado", // Cambia el estado de la orden a 'pagado'
             payment_id_mp: String(payment_id), // Guarda el ID de pago de MP para futuras referencias
             // Puedes agregar otros campos relevantes del pago aquí si tu tabla los tiene (ej. payment_method_detail, payer_id_mp)
           })
@@ -83,7 +83,7 @@ export default async function handler(
 
         if (updateError) {
           console.error(
-            `Error al actualizar el estado de la orden ${orderId} a 'paid':`,
+            `Error al actualizar el estado de la orden ${orderId} a 'pagado':`,
             updateError
           );
           // A pesar del error en la actualización, como el pago fue aprobado,
