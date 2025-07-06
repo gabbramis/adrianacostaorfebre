@@ -23,9 +23,6 @@ if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && ADMIN_EMAIL) {
         user: SMTP_USER,
         pass: SMTP_PASS,
       },
-      tls: {
-        rejectUnauthorized: false, // Opcional: para desarrollo si tienes problemas con certificados auto-firmados
-      },
     });
   } catch (initError: unknown) {
     // Captura errores durante la inicialización del transporter
@@ -45,7 +42,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     // Desestructurar 'tipoConsulta' para que coincida con el frontend
-    const { nombre, email, telefono, asunto, mensaje, tipoConsulta } = body;
+    const { nombre, email, telefono, asunto, mensaje, tipo_consulta } = body;
 
     // Validaciones básicas de campos obligatorios
     if (!nombre || !email || !asunto || !mensaje) {
@@ -68,7 +65,7 @@ export async function POST(request: NextRequest) {
           asunto,
           mensaje,
           // Usar 'tipoConsulta' del frontend para 'tipo_consulta' en la DB
-          tipo_consulta: tipoConsulta || "general",
+          tipo_consulta: tipo_consulta || "general",
           estado: "nuevo",
         },
       ])
@@ -92,14 +89,14 @@ export async function POST(request: NextRequest) {
           from: SMTP_USER, // Tu email de envío configurado
           to: ADMIN_EMAIL, // Tu email donde quieres recibir el mensaje
           subject: `[${
-            tipoConsulta || "General"
+            tipo_consulta || "General"
           }] Nuevo mensaje de ${nombre} - ${asunto}`,
           html: `
             <p><strong>Nombre:</strong> ${nombre}</p>
             <p><strong>Email:</strong> ${email}</p>
             ${telefono ? `<p><strong>Teléfono:</strong> ${telefono}</p>` : ""}
             <p><strong>Tipo de Consulta:</strong> ${
-              tipoConsulta || "No especificado"
+              tipo_consulta || "No especificado"
             }</p>
             <p><strong>Asunto:</strong> ${asunto}</p>
             <p><strong>Mensaje:</strong></p>

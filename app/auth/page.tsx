@@ -67,7 +67,7 @@ export default function AdminLogin() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={(e) => handleLogin(e)} className="space-y-6">
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
