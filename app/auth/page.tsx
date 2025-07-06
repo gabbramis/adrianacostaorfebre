@@ -43,8 +43,6 @@ export default function AdminLogin() {
       setIsLoading(false);
       return;
     }
-
-    setIsLoading(false);
     router.push("/admin");
   };
   return (
