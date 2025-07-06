@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   MapPin,
   Phone,
@@ -18,6 +19,7 @@ import {
   Gem,
   Heart,
   Award,
+  AlertCircle,
 } from "lucide-react";
 
 interface FormData {
@@ -40,6 +42,7 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -51,30 +54,59 @@ export default function ContactPage() {
       ...prev,
       [name]: value,
     }));
+    // Limpiar error al escribir
+    if (error) setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    // Simular envío del formulario
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-
-    // Resetear formulario después de 3 segundos
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        nombre: "",
-        email: "",
-        telefono: "",
-        asunto: "",
-        mensaje: "",
-        tipoConsulta: "general",
+    try {
+      const response = await fetch("/api/contacts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: formData.nombre,
+          email: formData.email,
+          telefono: formData.telefono,
+          asunto: formData.asunto,
+          mensaje: formData.mensaje,
+          tipo_consulta: formData.tipoConsulta,
+        }),
       });
-    }, 3000);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al enviar el mensaje");
+      }
+
+      setIsSubmitted(true);
+
+      // Resetear formulario después de 3 segundos
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({
+          nombre: "",
+          email: "",
+          telefono: "",
+          asunto: "",
+          mensaje: "",
+          tipoConsulta: "general",
+        });
+      }, 3000);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setError(
+        error instanceof Error ? error.message : "Error al enviar el mensaje"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
@@ -102,41 +134,6 @@ export default function ContactPage() {
       content: "Lun - Vie: 9:00 - 18:00",
     },
   ];
-
-  const preguntasFrecuentes = [
-    {
-      question: "¿Realizan trabajos personalizados?",
-      answer:
-        "Sí, nos especializamos en crear piezas únicas según tus ideas y preferencias. El proceso incluye una consulta inicial, diseño, aprobación y elaboración de la pieza.",
-    },
-    {
-      question: "¿Cuánto tiempo toma hacer una pieza personalizada?",
-      answer:
-        "Dependiendo de la complejidad, una pieza personalizada puede tomar entre 2 a 4 semanas. Te mantendremos informado durante todo el proceso.",
-    },
-    {
-      question: "¿Qué materiales utilizan?",
-      answer:
-        "Trabajamos principalmente con plata 925, oro 18k y piedras naturales seleccionadas. Todos nuestros materiales son de alta calidad y certificados.",
-    },
-    {
-      question: "¿Ofrecen garantía en sus productos?",
-      answer:
-        "Sí, todas nuestras piezas tienen garantía de 6 meses contra defectos de fabricación. También ofrecemos servicio de mantenimiento y reparación.",
-    },
-    {
-      question: "¿Realizan envíos a todo Uruguay?",
-      answer:
-        "Sí, realizamos envíos a todo el país. Los envíos a Montevideo son gratuitos en compras superiores a $2000. Para el interior, consultanos las tarifas.",
-    },
-    {
-      question: "¿Puedo ver las piezas antes de comprar?",
-      answer:
-        "Por supuesto. Podés agendar una cita en nuestro taller para ver las piezas en persona y conocer nuestro proceso de trabajo.",
-    },
-  ];
-
-  console.log(preguntasFrecuentes);
 
   const services = [
     {
@@ -182,6 +179,16 @@ export default function ContactPage() {
                 <h2 className="text-2xl md:text-3xl font-serif mb-6">
                   Envíanos un Mensaje
                 </h2>
+
+                {/* Mostrar error si existe */}
+                {error && (
+                  <Alert className="mb-6 border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-700">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 {isSubmitted ? (
                   <Card className="border-green-200 bg-green-50">
@@ -423,53 +430,6 @@ export default function ContactPage() {
             </div>
           </div>
         </section>
-
-        {/* Preguntas Frecuentes 
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl font-serif text-center mb-12">Preguntas Frecuentes</h2>
-            
-            <div className="max-w-3xl mx-auto">
-              <Tabs defaultValue="general" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="general">General</TabsTrigger>
-                  <TabsTrigger value="servicios">Servicios</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="general" className="mt-6">
-                  <div className="space-y-4">
-                    {faqs.slice(0, 3).map((faq, index) => (
-                      <Card key={index}>
-                        <CardHeader>
-                          <CardTitle className="text-lg">{faq.question}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-700">{faq.answer}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="servicios" className="mt-6">
-                  <div className="space-y-4">
-                    {faqs.slice(3).map((faq, index) => (
-                      <Card key={index}>
-                        <CardHeader>
-                          <CardTitle className="text-lg">{faq.question}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-700">{faq.answer}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </div>
-        </section>
-        */}
 
         {/* CTA Final */}
         <section className="py-16 bg-stone-800 text-white">
