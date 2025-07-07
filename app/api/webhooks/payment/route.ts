@@ -120,13 +120,11 @@ export const POST = async (req: NextRequest) => {
     });
 
     // 🔥 USAR UPDATE CON RETURNING PARA VERIFICAR SI LA ACTUALIZACIÓN FUE EXITOSA
-    const { data: updatedOrder, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from("orders")
       .update(updateData)
       .eq("id", externalReference)
-      .eq("status", "pending_payment") // Solo actualizar si está en pending
-      .select()
-      .single();
+      .eq("status", "pending_payment"); // Solo actualizar si está en pending
 
     if (updateError) {
       // Si no se pudo actualizar, podría ser porque ya fue actualizada

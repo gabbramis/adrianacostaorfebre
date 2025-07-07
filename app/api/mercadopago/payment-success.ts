@@ -11,7 +11,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "GET") {
-    const { payment_id, status, external_reference } = req.query;
+    const { payment_id } = req.query;
 
     console.log("🔄 Redirect Success - Query Params:", req.query);
 
