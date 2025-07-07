@@ -39,6 +39,7 @@ export interface OrderData {
   // Add payment_intent_id here if it's available at the time of order creation
   // For 'transfer' orders, this might be null initially or set to a custom ID.
   paymentIntentId?: string | null;
+  uniqueReference?: string;
 }
 
 // ---

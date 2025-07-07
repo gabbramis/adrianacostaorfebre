@@ -11,7 +11,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "GET") {
-    const { payment_id } = req.query;
+    const { payment_id, status, external_reference } = req.query;
 
     console.log("🔄 Redirect Success - Query Params:", req.query);
 
@@ -38,8 +38,10 @@ export default async function handler(
       if (finalPaymentStatus === "approved") {
         const supabase = await createSupabaseServer();
 
-        // 🔥 SOLO VERIFICAR - NO ACTUALIZAR
-        // El webhook ya debería haber actualizado la orden
+        // 🔥 ESPERAR UN POCO PARA QUE EL WEBHOOK PROCESE PRIMERO
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // Buscar la orden
         const { data: order, error: fetchOrderError } = await supabase
           .from("orders")
           .select("*")
@@ -57,15 +59,14 @@ export default async function handler(
           );
         }
 
-        // Verificar monto (opcional pero recomendado)
+        // Verificar monto
         if (order.totalPrice !== transactionAmount) {
           console.warn(
             `⚠️  Monto discrepante: esperado ${order.totalPrice}, pagado ${transactionAmount}`
           );
         }
 
-        // 🔥 ACTUALIZAR SOLO SI EL WEBHOOK NO LO HIZO
-        // Esto es una medida de seguridad por si el webhook falla
+        // 🔥 SOLO ACTUALIZAR SI EL WEBHOOK NO LO HIZO
         if (order.status !== "pagado" || !order.payment_id_mp) {
           console.log(
             "🔧 Webhook no actualizó la orden, actualizando via redirect..."
@@ -78,7 +79,8 @@ export default async function handler(
               payment_id_mp: String(payment_id),
               updated_at: new Date().toISOString(),
             })
-            .eq("id", orderId);
+            .eq("id", orderId)
+            .eq("status", "pending_payment"); // Solo actualizar si está pendiente
 
           if (updateError) {
             console.error(
@@ -93,12 +95,31 @@ export default async function handler(
           console.log("✅ Orden ya actualizada por webhook");
         }
 
+        // 🔥 OBTENER DATOS ACTUALIZADOS DE LA ORDEN
+        const { data: finalOrder, error: finalFetchError } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("id", orderId)
+          .single();
+
+        if (finalFetchError || !finalOrder) {
+          console.error(
+            `❌ Error al obtener orden final ${orderId}:`,
+            finalFetchError
+          );
+          return res.redirect(
+            302,
+            `/pago-fallido?error=final_order_fetch_failed&orderId=${orderId}`
+          );
+        }
+
         // Preparar datos para el redirect
         const redirectData = {
           orderId: String(orderId || ""),
-          deliveryMethod: String(order.deliveryMethod || "unknown"),
+          deliveryMethod: String(finalOrder.deliveryMethod || "unknown"),
           paymentMethod: "mercadopago",
           confirmedOrderTotal: String(transactionAmount),
+          paymentId: String(payment_id),
         };
 
         const frontendRedirectParams = new URLSearchParams(
@@ -108,11 +129,22 @@ export default async function handler(
           302,
           `/confirmacion-pedido?${frontendRedirectParams}`
         );
+      } else if (finalPaymentStatus === "pending") {
+        console.log(
+          `⏳ Pago ${payment_id} pendiente. Estado: ${finalPaymentStatus}`
+        );
+        return res.redirect(
+          302,
+          `/pago-pendiente?payment_id=${payment_id}&status=${finalPaymentStatus}`
+        );
       } else {
         console.log(
           `❌ Pago ${payment_id} no aprobado. Estado: ${finalPaymentStatus}`
         );
-        return res.redirect(302, `/pago-fallido?status=${finalPaymentStatus}`);
+        return res.redirect(
+          302,
+          `/pago-fallido?status=${finalPaymentStatus}&payment_id=${payment_id}`
+        );
       }
     } catch (error) {
       console.error("❌ Error al procesar redirect:", error);

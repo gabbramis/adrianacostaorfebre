@@ -25,7 +25,6 @@ export const POST = async (req: NextRequest) => {
     }
 
     // 🔥 FILTRAR SOLO EVENTOS DE PAGO RELEVANTES
-    // MercadoPago envía muchos webhooks, solo procesamos los importantes
     const relevantActions = ["payment.created", "payment.updated"];
     if (webhookBody.action && !relevantActions.includes(webhookBody.action)) {
       console.log(`⏭️  Webhook ignorado. Acción: ${webhookBody.action}`);
@@ -89,87 +88,111 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // Buscar la orden existente
-    const { data: existingOrder, error: fetchError } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("id", externalReference)
-      .single();
-
-    if (fetchError || !existingOrder) {
-      console.error(
-        `❌ Error al buscar la orden ${externalReference}:`,
-        fetchError
-      );
-      return NextResponse.json(
-        { message: "Orden no encontrada" },
-        { status: 404 }
-      );
-    }
-
-    // 🔥 PREVENIR ACTUALIZACIONES DUPLICADAS
-    // Solo actualizar si el estado realmente cambió
+    // 🔥 USAR UPSERT PARA EVITAR RACE CONDITIONS
+    // Esto actualiza si existe, o crea si no existe
     const newStatus =
       paymentDetails.status === "approved" ? "pagado" : paymentDetails.status;
-    const currentPaymentId = existingOrder.payment_id_mp;
 
+    // Solo procesar si el pago está aprobado o hay un cambio de estado significativo
     if (
-      currentPaymentId === paymentDetails.id &&
-      existingOrder.status === newStatus
+      paymentDetails.status !== "approved" &&
+      paymentDetails.status !== "rejected"
     ) {
       console.log(
-        `⏭️  Orden ${externalReference} ya está actualizada. Estado: ${newStatus}, Payment ID: ${currentPaymentId}`
+        `⏭️  Webhook ignorado. Estado no final: ${paymentDetails.status}`
       );
       return NextResponse.json(
-        {
-          message: "Webhook procesado - sin cambios necesarios",
-          orderId: externalReference,
-          status: newStatus,
-        },
+        { message: "Estado de pago no final" },
         { status: 200 }
       );
     }
 
-    // Actualizar solo si hay cambios
     const updateData = {
       status: newStatus,
-      payment_id_mp: paymentDetails.id,
-      updated_at: new Date().toISOString(), // Agregar timestamp
+      payment_id_mp: String(paymentDetails.id), // Forzar a string
+      updated_at: new Date().toISOString(),
     };
 
-    console.log("🔄 Actualizando orden:", {
+    console.log("🔄 Actualizando orden via webhook:", {
       orderId: externalReference,
-      from: existingOrder.status,
-      to: newStatus,
+      newStatus: newStatus,
       paymentId: paymentDetails.id,
     });
 
-    const { error: updateError } = await supabase
+    // 🔥 USAR UPDATE CON RETURNING PARA VERIFICAR SI LA ACTUALIZACIÓN FUE EXITOSA
+    const { data: updatedOrder, error: updateError } = await supabase
       .from("orders")
       .update(updateData)
-      .eq("id", externalReference);
+      .eq("id", externalReference)
+      .eq("status", "pending_payment") // Solo actualizar si está en pending
+      .select()
+      .single();
 
     if (updateError) {
-      console.error("❌ Error al actualizar la orden:", updateError);
-      return NextResponse.json(
-        { message: "Error al actualizar la orden" },
-        { status: 500 }
+      // Si no se pudo actualizar, podría ser porque ya fue actualizada
+      console.log(
+        "ℹ️  No se pudo actualizar via webhook, verificando estado actual:",
+        updateError
       );
-    }
 
-    console.log("✅ Orden actualizada exitosamente:", {
-      orderId: externalReference,
-      oldStatus: existingOrder.status,
-      newStatus: newStatus,
-      paymentStatus: paymentDetails.status,
-    });
+      // Verificar el estado actual
+      const { data: currentOrder, error: fetchError } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", externalReference)
+        .single();
+
+      if (fetchError || !currentOrder) {
+        console.error(
+          `❌ Error al buscar la orden ${externalReference}:`,
+          fetchError
+        );
+        return NextResponse.json(
+          { message: "Orden no encontrada" },
+          { status: 404 }
+        );
+      }
+
+      // Si ya está actualizada, está bien
+      if (
+        currentOrder.status === newStatus &&
+        currentOrder.payment_id_mp === String(paymentDetails.id)
+      ) {
+        console.log("✅ Orden ya actualizada por otro proceso");
+        return NextResponse.json(
+          {
+            message: "Webhook procesado - orden ya actualizada",
+            orderId: externalReference,
+            status: newStatus,
+          },
+          { status: 200 }
+        );
+      }
+
+      // Si no, intentar actualizar sin restricción de estado
+      const { error: forceUpdateError } = await supabase
+        .from("orders")
+        .update(updateData)
+        .eq("id", externalReference);
+
+      if (forceUpdateError) {
+        console.error("❌ Error al forzar actualización:", forceUpdateError);
+        return NextResponse.json(
+          { message: "Error al actualizar la orden" },
+          { status: 500 }
+        );
+      }
+
+      console.log("✅ Orden actualizada exitosamente (forzada)");
+    } else {
+      console.log("✅ Orden actualizada exitosamente via webhook");
+    }
 
     return NextResponse.json(
       {
         message: "Webhook procesado exitosamente",
         orderId: externalReference,
-        oldStatus: existingOrder.status,
-        newStatus: newStatus,
+        status: newStatus,
         paymentStatus: paymentDetails.status,
       },
       { status: 200 }
