@@ -1,130 +1,147 @@
+// pages/api/mercadopago/payment-success.ts
 import { NextApiRequest, NextApiResponse } from "next";
-import { MercadoPagoConfig, Payment } from "mercadopago";
-import { createSupabaseServer } from "@/utils/supabase/server"; // Asegurate que esta ruta sea correcta
-
-// Configura tus credenciales de Mercado Pago. ¡USA TU ACCESS TOKEN DE PRODUCCIÓN Y ENTORNO!
-const client = new MercadoPagoConfig({
-  accessToken: process.env.ML_ACCESS_TOKEN!,
-});
+import { createSupabaseServer } from "@/utils/supabase/server";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method === "GET") {
-    const { payment_id } = req.query;
+    const { payment_id, external_reference: orderIdFromMP } = req.query;
 
     console.log(
       "Mercado Pago Redirection (Success) - Query Params:",
       req.query
     );
 
-    // --- 1. VERIFICACIÓN CRÍTICA: Consulta el estado real del pago con la API de Mercado Pago ---
-    // No confíes solo en los parámetros de la URL que Mercado Pago envía directamente.
     if (!payment_id) {
       console.error(
         "No payment_id received from Mercado Pago. Redireccionando a fallo."
       );
-      return res.redirect(302, `/pago-fallido?error=no_payment_id`); // Redirige a tu página de fallo
+      return res.redirect(302, `/pago-fallido?error=no_payment_id`);
     }
 
     try {
-      const payment = new Payment(client);
-      const paymentDetails = await payment.get({ id: String(payment_id) });
+      const supabase = await createSupabaseServer();
 
-      const finalPaymentStatus = paymentDetails.status;
-      const orderId = paymentDetails.external_reference; // Tu ID de orden que pasaste al crear la preferencia
-      const transactionAmount = paymentDetails.transaction_amount;
+      let orderId = String(orderIdFromMP || "");
+      let order;
 
-      if (finalPaymentStatus === "approved") {
-        // --- 2. ACTUALIZA EL ESTADO DE TU ORDEN EN SUPABASE (VITAL) ---
-        const supabase = await createSupabaseServer();
-
-        // Obtén los datos completos de la orden desde tu base de datos
-        // (Esto es necesario para obtener 'deliveryMethod' y verificar 'totalPrice')
-        const { data: order, error: fetchOrderError } = await supabase
-          .from("orders") // Asegurate que 'orders' es el nombre de tu tabla
+      // Intenta buscar la orden primero por external_reference (orderId)
+      if (orderId) {
+        const { data, error } = await supabase
+          .from("orders")
           .select("*")
           .eq("id", orderId)
           .single();
-
-        if (fetchOrderError || !order) {
-          console.error(
-            `Error al buscar la orden ${orderId} en Supabase o no encontrada:`,
-            fetchOrderError
+        order = data;
+        if (error || !order) {
+          console.warn(
+            `Orden ${orderId} no encontrada directamente. Intentando por payment_id_mp.`
           );
-          // Si la orden no se encuentra o hay un error, redirige a una página de error específica
+          // Si no se encontró por ID de orden, intenta por payment_id_mp
+          const { data: dataByMpId, error: errorByMpId } = await supabase
+            .from("orders")
+            .select("*")
+            .eq("payment_id_mp", String(payment_id))
+            .single();
+          order = dataByMpId;
+          if (errorByMpId || !order) {
+            console.error(
+              `Error al buscar la orden (por ID o payment_id_mp) para el payment_id ${payment_id}:`,
+              error || errorByMpId
+            );
+            return res.redirect(
+              302,
+              `/pago-fallido?error=order_not_found_or_not_linked&paymentId=${payment_id}`
+            );
+          }
+          orderId = order.id; // Actualiza orderId si se encontró por payment_id_mp
+        }
+      } else {
+        // Si no hay external_reference, obligatoriamente busca por payment_id_mp
+        const { data: dataByMpId, error: errorByMpId } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("payment_id_mp", String(payment_id))
+          .single();
+        order = dataByMpId;
+        if (errorByMpId || !order) {
+          console.error(
+            `Error al buscar la orden (solo por payment_id_mp) para el payment_id ${payment_id}:`,
+            errorByMpId
+          );
           return res.redirect(
             302,
-            `/pago-fallido?error=order_not_found&orderId=${orderId}`
+            `/pago-fallido?error=order_not_found_by_payment_id&paymentId=${payment_id}`
           );
         }
+        orderId = order.id; // Asigna orderId
+      }
 
-        // Opcional pero muy recomendado: Verificar que el monto pagado coincida con el esperado
-        if (order.totalPrice !== transactionAmount) {
-          console.warn(
-            `Alerta de fraude/discrepancia: Monto pagado (${transactionAmount}) NO coincide con el esperado (${order.totalPrice}) para el pedido ${orderId}.`
-          );
-          // Aquí podrías decidir qué hacer:
-          // 1. Marcar el pedido para revisión manual.
-          // 2. Si es una diferencia menor aceptable, seguir.
-          // Por ahora, simplemente lo logueamos como advertencia.
-        }
+      // NO CONSULTAR A MERCADO PAGO AQUÍ. NO ACTUALIZAR EL ESTADO AQUÍ.
+      // El webhook es el responsable de la actualización.
+      // Solo redirige basándote en el estado actual de la orden en tu DB.
 
-        // Actualiza el estado de la orden a 'pagado' o 'completado'
-        const { error: updateError } = await supabase
-          .from("orders")
-          .update({
-            status: "pagado", // Cambia el estado de la orden a 'pagado'
-            payment_id_mp: String(payment_id), // Guarda el ID de pago de MP para futuras referencias
-            // Puedes agregar otros campos relevantes del pago aquí si tu tabla los tiene (ej. payment_method_detail, payer_id_mp)
-          })
-          .eq("id", orderId);
+      // Puedes agregar una pequeña espera si sospechas de una race condition muy ajustada,
+      // aunque el webhook debería ser casi instantáneo.
+      // await new Promise(resolve => setTimeout(resolve, 500)); // Espera 500ms
 
-        if (updateError) {
-          console.error(
-            `Error al actualizar el estado de la orden ${orderId} a 'pagado':`,
-            updateError
-          );
-          // A pesar del error en la actualización, como el pago fue aprobado,
-          // se podría redirigir a la página de éxito, pero deberías tener un sistema de alerta.
-          // Para robustez, podrías redirigir a un error si la actualización de la DB falla.
-        }
-        const redirectData = {
-          orderId: String(orderId || ""), // Asegura que sea string, incluso si es undefined
-          deliveryMethod: String(order.deliveryMethod || "unknown"), // Convierte a string y provee un fallback
-          paymentMethod: "mercadopago", // Ya es un string literal
-          confirmedOrderTotal: String(transactionAmount), // Convierte el número a string
-          // Puedes añadir otros datos si los necesitas y están disponibles
-        };
+      // Re-fetch de la orden para asegurar el estado más reciente después de la posible espera
+      const { data: updatedOrder, error: updatedOrderError } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", orderId)
+        .single();
 
-        // --- 3. REDIRIGE AL FRONTEND con los datos CONFIRMADOS y LIMPIOS ---
-        // Codifica los datos obtenidos y verificados para pasarlos por la URL al frontend.
-        const frontendRedirectParams = new URLSearchParams(
-          redirectData
-        ).toString();
+      if (updatedOrderError || !updatedOrder) {
+        console.error(
+          `Error al re-buscar la orden ${orderId} después de la redirección:`,
+          updatedOrderError
+        );
+        return res.redirect(
+          302,
+          `/pago-fallido?error=order_state_unavailable&orderId=${orderId}`
+        );
+      }
 
-        // Redirige al navegador del usuario a tu página de confirmación en el frontend
+      const redirectData = {
+        orderId: String(orderId || ""),
+        deliveryMethod: String(updatedOrder.deliveryMethod || "unknown"),
+        paymentMethod: "mercadopago",
+        confirmedOrderTotal: String(updatedOrder.totalPrice || "0"), // Usa el totalPrice de la orden
+      };
+
+      const frontendRedirectParams = new URLSearchParams(
+        redirectData
+      ).toString();
+
+      // Si la orden existe y tiene un estado de pago, redirige a confirmación.
+      // Si el estado no es "pagado" (o el que uses para aprobado), podrías redirigir a fallo.
+      if (updatedOrder.status === "pagado") {
+        // Asegúrate de que este estado coincide con el del webhook
         return res.redirect(
           302,
           `/confirmacion-pedido?${frontendRedirectParams}`
         );
       } else {
-        // El pago NO fue aprobado (puede ser 'pending', 'rejected', 'cancelled', etc.)
-        console.log(
-          `Pago ${payment_id} no aprobado. Estado final: ${finalPaymentStatus}`
+        // Si el webhook aún no ha actualizado o el pago no fue aprobado
+        return res.redirect(
+          302,
+          `/pago-fallido?status=${updatedOrder.status}&orderId=${orderId}`
         );
-        return res.redirect(302, `/pago-fallido?status=${finalPaymentStatus}`); // Redirige a tu página de fallo
       }
     } catch (error) {
       console.error(
-        "Error general al consultar o procesar el pago de Mercado Pago:",
+        "Error general al procesar la redirección de Mercado Pago:",
         error
       );
-      return res.redirect(302, `/pago-fallido?error=payment_processing_failed`); // Error interno del servidor
+      return res.redirect(
+        302,
+        `/pago-fallido?error=redirection_processing_failed`
+      );
     }
   } else {
-    // Si no es un método GET, devuelve un error 405
     res.setHeader("Allow", ["GET"]);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }

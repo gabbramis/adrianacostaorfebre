@@ -277,11 +277,11 @@ export default function CrearOEditarProductoDialog({
                     {imagenUrls.map((url, index) => (
                       <CarouselItem key={index}>
                         <div className="p-1">
-                          <div className="relative w-full h-40 border rounded-md overflow-hidden">
+                          <div className="relative w-full h-40 border rounded-md overflow-hidden bg-gray-50 flex items-center justify-center">
                             <img
                               src={url}
                               alt={`Vista previa del producto ${index + 1}`}
-                              className="w-full h-full object-contain"
+                              className="max-w-full max-h-full object-contain"
                             />
                           </div>
                         </div>

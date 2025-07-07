@@ -142,9 +142,9 @@ export default function GalleryPage() {
   ];
 
   // Obtener materiales únicos
-  const allMaterials = Array.from(
-    new Set(products.flatMap((p) => p.materials || []))
-  );
+  //const allMaterials = Array.from(
+  // new Set(products.flatMap((p) => p.materials || []))
+  //);
 
   // Obtener término de búsqueda de la URL si existe
   useEffect(() => {
@@ -180,15 +180,6 @@ export default function GalleryPage() {
       setIsSearching(true);
     } else {
       setIsSearching(false);
-    }
-
-    // Filtrar por materiales
-    if (selectedMaterials.length > 0) {
-      filtered = filtered.filter((product) =>
-        selectedMaterials.some((material) =>
-          product.materials?.includes(material)
-        )
-      );
     }
 
     // Ordenar productos
@@ -265,15 +256,13 @@ export default function GalleryPage() {
     openCart();
   };
 
-  const toggleMaterial = (material: string) => {
+  /*const toggleMaterial = (material: string) => {
     setSelectedMaterials((prev) =>
       prev.includes(material)
         ? prev.filter((m) => m !== material)
         : [...prev, material]
     );
-  };
-
-  // Mostrar loading mientras se cargan los productos
+  }*/ // Mostrar loading mientras se cargan los productos
   if (loading) {
     return (
       <main className="pt-0">
@@ -397,7 +386,7 @@ export default function GalleryPage() {
                     </div>
                   </Card>
 
-                  {/* Materiales */}
+                  {/* Materiales 
                   <Card className="p-4">
                     <h3 className="font-semibold mb-4">Materiales</h3>
                     <div className="space-y-2">
@@ -416,7 +405,7 @@ export default function GalleryPage() {
                         </label>
                       ))}
                     </div>
-                  </Card>
+                  </Card>*/}
                 </div>
               </div>
 
@@ -481,7 +470,7 @@ export default function GalleryPage() {
                                 className="cursor-pointer"
                                 onClick={() => setSelectedProduct(product)}
                               >
-                                <div className="relative h-64 overflow-hidden">
+                                <div className="relative aspect-square overflow-hidden bg-gray-100 rounded-t-lg">
                                   <img
                                     src={getPrimaryImageSrc(product)}
                                     alt={product.name}
@@ -499,19 +488,20 @@ export default function GalleryPage() {
                               </DialogHeader>
 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                                <div className="relative h-80 md:h-96 bg-stone-100 rounded-md overflow-hidden">
+                                {/* SECCIÓN DE IMÁGENES - ARREGLADA */}
+                                <div className="relative">
                                   {product.image && product.image.length > 0 ? (
-                                    <Carousel className="w-full h-full">
+                                    <Carousel className="w-full">
                                       <CarouselContent>
                                         {product.image.map((url, index) => (
                                           <CarouselItem key={index}>
-                                            <div className="w-full h-full flex items-center justify-center">
+                                            <div className="relative w-full h-80 md:h-96 bg-gray-50 rounded-lg overflow-hidden border">
                                               <img
                                                 src={url}
                                                 alt={`${
                                                   product.name
                                                 } - Imagen ${index + 1}`}
-                                                className="w-full h-full object-contain"
+                                                className="w-full h-full object-cover"
                                               />
                                             </div>
                                           </CarouselItem>
@@ -519,29 +509,33 @@ export default function GalleryPage() {
                                       </CarouselContent>
                                       {product.image.length > 1 && (
                                         <>
-                                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-                                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white" />
+                                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white" />
                                         </>
                                       )}
                                     </Carousel>
                                   ) : (
-                                    <img
-                                      src="/placeholder-image.jpg"
-                                      alt="Imagen no disponible"
-                                      className="w-full h-full object-contain bg-gray-200"
-                                    />
+                                    <div className="w-full h-80 md:h-96 bg-gray-50 rounded-lg border flex items-center justify-center">
+                                      <img
+                                        src="/placeholder-image.jpg"
+                                        alt="Imagen no disponible"
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
                                   )}
                                 </div>
 
-                                <div>
+                                {/* SECCIÓN DE INFORMACIÓN DEL PRODUCTO */}
+                                <div className="flex flex-col justify-start">
                                   <DialogDescription className="text-base text-gray-700 mb-4">
                                     {product.description}
                                   </DialogDescription>
 
+                                  {/* Materiales 
                                   {product.materials &&
                                     product.materials.length > 0 && (
                                       <div className="mb-4">
-                                        <h4 className="text-sm font-medium text-gray-500 mb-1">
+                                        <h4 className="text-sm font-medium text-gray-500 mb-2">
                                           Materiales
                                         </h4>
                                         <div className="flex flex-wrap gap-2">
@@ -581,7 +575,7 @@ export default function GalleryPage() {
                                         </span>
                                       </div>
                                     </div>
-                                  )}
+                                  )}*/}
 
                                   <div className="mb-6">
                                     <h4 className="text-sm font-medium text-gray-500 mb-1">
@@ -592,8 +586,8 @@ export default function GalleryPage() {
                                     </p>
                                   </div>
 
-                                  <div className="flex gap-3">
-                                    <Button className="flex-1">
+                                  <div className="flex gap-3 ">
+                                    <Button className="flex-1 bg-stone-800 hover:bg-stone-700">
                                       Comprar Ahora
                                     </Button>
                                     <Button
