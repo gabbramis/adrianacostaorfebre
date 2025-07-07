@@ -144,12 +144,10 @@ export const POST = async (req: NextRequest) => {
       paymentId: paymentDetails.id,
     });
 
-    const { data: updatedOrder, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from("orders")
       .update(updateData)
-      .eq("id", externalReference)
-      .select()
-      .single();
+      .eq("id", externalReference);
 
     if (updateError) {
       console.error("❌ Error al actualizar la orden:", updateError);
