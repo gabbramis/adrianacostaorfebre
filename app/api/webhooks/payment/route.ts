@@ -52,43 +52,80 @@ export const POST = async (req: NextRequest) => {
     const paymentDetails = await response.json();
     console.log("Detalles del pago obtenidos de Mercado Pago:", paymentDetails);
 
-    const orderToInsert = {
-      mp_payment_id: paymentDetails.id,
-
-      total_amount: paymentDetails.transaction_amount, // Monto total de la transacción
-      currency: paymentDetails.currency_id, // Moneda (ej. UYU)
-      status: paymentDetails.status, // Estado del pago (ej. 'approved')
-      description: paymentDetails.description, // Descripción del pago (ej. 'Checkout')
-      payment_method_id: paymentDetails.payment_method_id, // Método de pago (ej. 'account_money')
-      created_at: paymentDetails.date_created, // Fecha de creación del pago
-      approved_at: paymentDetails.date_approved, // Fecha de aprobación del pago
-      payer_email: paymentDetails.payer?.email, // Email del comprador (usa optional chaining ?. por si no existe)
-      payer_id: paymentDetails.payer?.id, // ID del comprador en MP
-    };
-
-    // Imprime el objeto que vas a insertar para verificar que esté bien formado
-    console.log("Objeto a insertar en Supabase:", orderToInsert);
-
-    // Llamada a supabase
     const supabase = await createSupabaseServer();
 
-    // Insertar el record
-    const { data: orderData, error: supabaseError } = await supabase
-      .from("orders")
-      .insert(orderToInsert);
+    // 🔥 CAMBIO CRÍTICO: Buscar la orden existente usando external_reference
+    const externalReference = paymentDetails.external_reference;
 
-    if (supabaseError) {
-      console.error("Error al insertar la orden en Supabase:", supabaseError);
+    if (!externalReference) {
+      console.error(
+        "No se encontró external_reference en el pago:",
+        paymentDetails
+      );
       return NextResponse.json(
-        { message: "Error al guardar la orden" },
+        { message: "external_reference no encontrado" },
+        { status: 400 }
+      );
+    }
+
+    // Buscar la orden existente por su ID (que debería estar en external_reference)
+    const { data: existingOrder, error: fetchError } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", externalReference)
+      .single();
+
+    if (fetchError || !existingOrder) {
+      console.error(
+        `Error al buscar la orden ${externalReference} en Supabase:`,
+        fetchError
+      );
+      return NextResponse.json(
+        { message: "Orden no encontrada" },
+        { status: 404 }
+      );
+    }
+
+    // 🔥 ACTUALIZAR la orden existente (no crear una nueva)
+    const updateData = {
+      status:
+        paymentDetails.status === "approved" ? "pagado" : paymentDetails.status,
+      payment_id_mp: paymentDetails.id,
+    };
+
+    console.log("Datos a actualizar en Supabase:", updateData);
+
+    // Actualizar la orden existente
+    const { data: updatedOrder, error: updateError } = await supabase
+      .from("orders")
+      .update(updateData)
+      .eq("id", externalReference)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error("Error al actualizar la orden en Supabase:", updateError);
+      return NextResponse.json(
+        { message: "Error al actualizar la orden" },
         { status: 500 }
       );
     }
 
-    console.log("Orden guardada exitosamente en Supabase:", orderData);
+    console.log("Orden actualizada exitosamente:", updatedOrder);
+
+    // Log adicional para debug
+    console.log(
+      `Orden ${externalReference} actualizada de estado '${existingOrder.status}' a '${updateData.status}'`
+    );
 
     return NextResponse.json(
-      { message: "Webhook procesado exitosamente", order: orderData },
+      {
+        message: "Webhook procesado exitosamente",
+        orderId: externalReference,
+        oldStatus: existingOrder.status,
+        newStatus: updateData.status,
+        paymentStatus: paymentDetails.status,
+      },
       { status: 200 }
     );
   } catch (error) {
