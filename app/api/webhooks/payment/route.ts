@@ -6,6 +6,13 @@ export const POST = async (req: NextRequest) => {
     const webhookBody = await req.json();
     const paymentId = webhookBody.data?.id || webhookBody.id;
 
+    console.log("🔔 Webhook recibido:", {
+      action: webhookBody.action,
+      type: webhookBody.type,
+      paymentId: paymentId,
+      fullBody: webhookBody,
+    });
+
     if (!paymentId) {
       console.error(
         "No se encontró el ID de pago en la notificación del webhook:",
@@ -14,6 +21,17 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json(
         { message: "ID de pago no encontrado" },
         { status: 400 }
+      );
+    }
+
+    // 🔥 FILTRAR SOLO EVENTOS DE PAGO RELEVANTES
+    // MercadoPago envía muchos webhooks, solo procesamos los importantes
+    const relevantActions = ["payment.created", "payment.updated"];
+    if (webhookBody.action && !relevantActions.includes(webhookBody.action)) {
+      console.log(`⏭️  Webhook ignorado. Acción: ${webhookBody.action}`);
+      return NextResponse.json(
+        { message: "Webhook ignorado - acción no relevante" },
+        { status: 200 }
       );
     }
 
@@ -50,11 +68,14 @@ export const POST = async (req: NextRequest) => {
     }
 
     const paymentDetails = await response.json();
-    console.log("Detalles del pago obtenidos de Mercado Pago:", paymentDetails);
+    console.log("💳 Detalles del pago obtenidos:", {
+      id: paymentDetails.id,
+      status: paymentDetails.status,
+      external_reference: paymentDetails.external_reference,
+      transaction_amount: paymentDetails.transaction_amount,
+    });
 
     const supabase = await createSupabaseServer();
-
-    // 🔥 CAMBIO CRÍTICO: Buscar la orden existente usando external_reference
     const externalReference = paymentDetails.external_reference;
 
     if (!externalReference) {
@@ -68,7 +89,7 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // Buscar la orden existente por su ID (que debería estar en external_reference)
+    // Buscar la orden existente
     const { data: existingOrder, error: fetchError } = await supabase
       .from("orders")
       .select("*")
@@ -77,7 +98,7 @@ export const POST = async (req: NextRequest) => {
 
     if (fetchError || !existingOrder) {
       console.error(
-        `Error al buscar la orden ${externalReference} en Supabase:`,
+        `❌ Error al buscar la orden ${externalReference}:`,
         fetchError
       );
       return NextResponse.json(
@@ -86,16 +107,43 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // 🔥 ACTUALIZAR la orden existente (no crear una nueva)
+    // 🔥 PREVENIR ACTUALIZACIONES DUPLICADAS
+    // Solo actualizar si el estado realmente cambió
+    const newStatus =
+      paymentDetails.status === "approved" ? "pagado" : paymentDetails.status;
+    const currentPaymentId = existingOrder.payment_id_mp;
+
+    if (
+      currentPaymentId === paymentDetails.id &&
+      existingOrder.status === newStatus
+    ) {
+      console.log(
+        `⏭️  Orden ${externalReference} ya está actualizada. Estado: ${newStatus}, Payment ID: ${currentPaymentId}`
+      );
+      return NextResponse.json(
+        {
+          message: "Webhook procesado - sin cambios necesarios",
+          orderId: externalReference,
+          status: newStatus,
+        },
+        { status: 200 }
+      );
+    }
+
+    // Actualizar solo si hay cambios
     const updateData = {
-      status:
-        paymentDetails.status === "approved" ? "pagado" : paymentDetails.status,
+      status: newStatus,
       payment_id_mp: paymentDetails.id,
+      updated_at: new Date().toISOString(), // Agregar timestamp
     };
 
-    console.log("Datos a actualizar en Supabase:", updateData);
+    console.log("🔄 Actualizando orden:", {
+      orderId: externalReference,
+      from: existingOrder.status,
+      to: newStatus,
+      paymentId: paymentDetails.id,
+    });
 
-    // Actualizar la orden existente
     const { data: updatedOrder, error: updateError } = await supabase
       .from("orders")
       .update(updateData)
@@ -104,32 +152,32 @@ export const POST = async (req: NextRequest) => {
       .single();
 
     if (updateError) {
-      console.error("Error al actualizar la orden en Supabase:", updateError);
+      console.error("❌ Error al actualizar la orden:", updateError);
       return NextResponse.json(
         { message: "Error al actualizar la orden" },
         { status: 500 }
       );
     }
 
-    console.log("Orden actualizada exitosamente:", updatedOrder);
-
-    // Log adicional para debug
-    console.log(
-      `Orden ${externalReference} actualizada de estado '${existingOrder.status}' a '${updateData.status}'`
-    );
+    console.log("✅ Orden actualizada exitosamente:", {
+      orderId: externalReference,
+      oldStatus: existingOrder.status,
+      newStatus: newStatus,
+      paymentStatus: paymentDetails.status,
+    });
 
     return NextResponse.json(
       {
         message: "Webhook procesado exitosamente",
         orderId: externalReference,
         oldStatus: existingOrder.status,
-        newStatus: updateData.status,
+        newStatus: newStatus,
         paymentStatus: paymentDetails.status,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error general en el procesamiento del webhook:", error);
+    console.error("❌ Error general en el procesamiento del webhook:", error);
     return NextResponse.json(
       { message: "Error interno del servidor" },
       { status: 500 }
