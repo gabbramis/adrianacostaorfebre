@@ -1,65 +1,54 @@
 // app/actions/mercadopago-payment.ts
 "use server";
 
+// SDK de Mercado Pago
 import { MercadoPagoConfig, Preference } from "mercadopago";
 import { createSupabaseServer } from "@/utils/supabase/server";
-import { createOrder, OrderData } from "./transfer-orders";
+import { createOrder, OrderData } from "./transfer-orders"; // Import OrderData type
 import process from "process";
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.ML_ACCESS_TOKEN!,
 });
 
+// We need to pass the OrderData to this function so we can create the order in Supabase
+// and link the Mercado Pago preference to it.
 export async function mercadopagoPayment(orderData: OrderData) {
   try {
-    // 🔥 VERIFICAR SI YA EXISTE UNA ORDEN PARA EVITAR DUPLICADOS
-    const supabase = await createSupabaseServer();
-
-    // Generar un ID único basado en el timestamp y datos del usuario
-    const uniqueId = `${Date.now()}-${orderData.customerInfo.email.replace(
-      /[^a-zA-Z0-9]/g,
-      ""
-    )}-${Math.random().toString(36).substr(2, 9)}`;
-
-    console.log("🆔 Generando orden con ID único:", uniqueId);
-
-    // Crear orden en Supabase ANTES de MercadoPago
-    const orderCreationResult = await createOrder({
-      ...orderData,
-      // Asegurar que el ID sea único si tu createOrder lo permite
-      uniqueReference: uniqueId,
-    });
+    // IMPORTANT: Create the order in Supabase BEFORE creating the Mercado Pago preference
+    // This way, you have an order ID to link the payment preference to.
+    const orderCreationResult = await createOrder(orderData); // Call your existing createOrder action
 
     if (!orderCreationResult.success) {
-      console.error("Failed to create order:", orderCreationResult.error);
+      console.error(
+        "Failed to create order before Mercado Pago preference:",
+        orderCreationResult.error
+      );
       return { success: false, error: orderCreationResult.error, url: null };
     }
 
     const orderId = orderCreationResult.orderId;
-    console.log("📝 Orden creada con ID:", orderId, "Tipo:", typeof orderId);
+    const supabase = await createSupabaseServer();
 
-    // 🔥 ASEGURAR QUE EL ORDER ID SEA CONSISTENTE
-    const stringOrderId = String(orderId);
-
-    // Preparar items para MercadoPago
+    // Prepare items for Mercado Pago preference from OrderData
     const itemsForMercadoPago = orderData.items.map((item) => ({
-      id: String(item.id), // Asegurar que sea string
-      title: item.name.substring(0, 256), // MercadoPago tiene límite de caracteres
+      id: item.id,
+      title: item.name,
       quantity: item.quantity,
-      unit_price: Number(item.price),
+      unit_price: item.price,
+      // You can add more details like currency_id if needed
       currency_id: "UYU",
     }));
-
     if (orderData.shippingCost > 0) {
+      // Only add if there's a positive shipping cost
       itemsForMercadoPago.push({
-        id: "SHIPPING_COST",
-        title: "Costo de Envío",
-        quantity: 1,
-        unit_price: Number(orderData.shippingCost),
-        currency_id: "UYU",
+        id: "SHIPPING_COST", // A unique ID for shipping
+        title: "Costo de Envío", // Descriptive title
+        quantity: 1, // Always 1 unit of shipping
+        unit_price: Number(orderData.shippingCost), // The actual shipping cost
+        currency_id: "UYU", // Same currency as other items
       });
     }
-
     if (itemsForMercadoPago.length === 0) {
       return {
         success: false,
@@ -67,92 +56,67 @@ export async function mercadopagoPayment(orderData: OrderData) {
         url: null,
       };
     }
-
-    // 🔥 VALIDAR QUE EL TOTAL SEA CORRECTO
-    const totalAmount = itemsForMercadoPago.reduce(
-      (sum, item) => sum + item.unit_price * item.quantity,
-      0
-    );
-    console.log("💰 Total calculado:", totalAmount);
-
     const preference = new Preference(client);
 
     const preferenceResponse = await preference.create({
       body: {
         items: itemsForMercadoPago,
-        // 🔥 CRÍTICO: Asegurar que external_reference sea STRING y único
-        external_reference: stringOrderId,
+        // Add external_reference to link the Mercado Pago preference to your internal order ID
+        external_reference: orderId,
         payer: {
-          name: orderData.customerInfo.firstName.substring(0, 256),
-          surname: orderData.customerInfo.lastName.substring(0, 256),
+          name: orderData.customerInfo.firstName,
+          surname: orderData.customerInfo.lastName,
           email: orderData.customerInfo.email,
           phone: {
-            area_code: "",
+            area_code: "", // Extract area code if available
             number: orderData.customerInfo.phone,
           },
           address: {
-            street_name: orderData.customerInfo.address.substring(0, 256),
-            street_number: "",
+            street_name: orderData.customerInfo.address, // Consider breaking this down later
+            street_number: "", // Extract if available
             zip_code: orderData.customerInfo.postalCode,
           },
         },
         back_urls: {
-          success: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/payment-success`,
+          success: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/payment-success`, // <-- ¡IMPORTANTE!
           failure: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/payment-failure`,
           pending: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/payment-pending`,
         },
         auto_return: "approved",
-        // 🔥 CONFIGURAR WEBHOOK CORRECTAMENTE
-        notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhook/mercadopago`,
-        // 🔥 AGREGAR CONFIGURACIONES ADICIONALES
-        expires: true,
-        expiration_date_from: new Date().toISOString(),
-        expiration_date_to: new Date(
-          Date.now() + 24 * 60 * 60 * 1000
-        ).toISOString(), // 24 horas
       },
     });
 
     const preferenceId = preferenceResponse.id;
-    const paymentUrl = preferenceResponse.init_point;
+    const paymentUrl = preferenceResponse.init_point; // Use a more descriptive name
 
-    console.log("💳 MercadoPago preference creada:", {
-      preferenceId,
-      orderId: stringOrderId,
-      external_reference: stringOrderId,
-      paymentUrl,
-    });
+    console.log("Mercado Pago Preference ID:", preferenceId);
+    console.log("Mercado Pago Payment URL:", paymentUrl);
 
-    // 🔥 ACTUALIZAR ORDEN CON DATOS DE MERCADOPAGO
-    const { data: updatedOrder, error: updateError } = await supabase
-      .from("orders")
+    // Update the order in Supabase with the Mercado Pago preference ID
+    // and set its status to something like 'pending_payment_mp'
+    const { error: updateError } = await supabase
+      .from("orders") // Your orders table
       .update({
         payment_intent_id: preferenceId,
-        status: "pending_payment",
-        updated_at: new Date().toISOString(),
+        status: "pending_payment", // Or 'pending_mercadopago'
       })
-      .eq("id", stringOrderId)
-      .select()
-      .single();
+      .eq("id", orderId);
 
     if (updateError) {
-      console.error(
-        "❌ Error updating order with MP preference ID:",
-        updateError
-      );
+      console.error("Error updating order with MP preference ID:", updateError);
+      // You might want to log this but still return the URL to the user
       return {
-        success: false,
-        error: "Error al actualizar la orden con MercadoPago",
-        url: null,
+        success: true,
+        url: paymentUrl,
+        orderId: orderId,
+        warning: "Order updated with MP ID failed",
       };
     }
-
-    console.log("✅ Orden actualizada a pending_payment:", updatedOrder);
 
     return {
       success: true,
       url: paymentUrl,
-      orderId: stringOrderId,
+      orderId: orderId,
       preferenceId: preferenceId,
     };
   } catch (error: unknown) {
@@ -160,7 +124,7 @@ export async function mercadopagoPayment(orderData: OrderData) {
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    console.error("❌ Error in Mercado Pago payment processing:", error);
+    console.error("Error in Mercado Pago payment processing:", error);
     return { success: false, error: errorMessage, url: null };
   }
 }
