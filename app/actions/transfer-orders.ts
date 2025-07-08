@@ -111,7 +111,7 @@ export async function createOrder(orderData: OrderData) {
         payment_method: orderData.paymentMethod,
         promo_applied: orderData.promoApplied,
         notes: orderData.notes, // Use orderData.notes for order-specific notes
-        status: "pending", // Initial order status
+        status: "pendiente", // Initial order status
         // If paymentIntentId is provided for Mercado Pago, include it here
         // Remove direct customer info from 'ordenes' if it's already in 'clientes'
         // Unless you explicitly want to denormalize it here for quick lookup (less recommended)

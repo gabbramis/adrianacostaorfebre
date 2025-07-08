@@ -278,8 +278,7 @@ export default function OrdersManagement() {
 
   const getOrderTotal = (order: OrderWithDetails) => {
     const itemsTotal = order.total_amount;
-    const shippingCost = order.shipping_cost || 0;
-    return itemsTotal + shippingCost;
+    return itemsTotal;
   };
 
   if (loading) {
@@ -384,7 +383,7 @@ export default function OrdersManagement() {
                             {order.client?.last_name || "Desconocido"}
                           </CardTitle>
                           <p className="text-sm text-gray-600">
-                            Orden #{order.id.slice(-8)}
+                            Orden #{order.id}
                           </p>
                         </div>
                       </div>
@@ -526,10 +525,6 @@ export default function OrdersManagement() {
                       </div>
 
                       <div className="mt-4 p-3 bg-blue-50 rounded">
-                        <div className="flex justify-between items-center">
-                          <span>Subtotal:</span>
-                          <span>{formatPrice(order.total_amount)}</span>
-                        </div>
                         {order.shipping_cost && order.shipping_cost > 0 && (
                           <div className="flex justify-between items-center">
                             <span>Envío:</span>
