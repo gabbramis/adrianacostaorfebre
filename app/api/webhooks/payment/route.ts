@@ -52,7 +52,23 @@ export const POST = async (req: NextRequest) => {
     const paymentDetails = await response.json();
     console.log("Detalles del pago obtenidos de Mercado Pago:", paymentDetails);
 
+    const orderId = paymentDetails.external_reference;
+    const mercadopagoPreferenceId = paymentDetails.preference_id;
+
+    if (!orderId) {
+      console.error(
+        "No se encontró el external_reference (orderId) en los detalles del pago de Mercado Pago.",
+        paymentDetails
+      );
+      return NextResponse.json(
+        { message: "ID de orden (external_reference) no encontrado" },
+        { status: 400 }
+      );
+    }
+
     const orderToUpdate = {
+      mercadopago_payment_id: paymentId,
+      mercadopago_preference_id: mercadopagoPreferenceId,
       status: paymentDetails.status,
     };
 
@@ -66,7 +82,7 @@ export const POST = async (req: NextRequest) => {
     const { data: orderData, error: supabaseError } = await supabase
       .from("orders")
       .update(orderToUpdate)
-      .eq("payment_intent_id", paymentId)
+      .eq("id", orderId)
       .single();
 
     if (supabaseError) {
@@ -76,7 +92,6 @@ export const POST = async (req: NextRequest) => {
         { status: 500 }
       );
     }
-
     console.log("Orden actualizada exitosamente en Supabase:", orderData);
 
     return NextResponse.json(
