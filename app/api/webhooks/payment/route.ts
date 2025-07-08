@@ -87,10 +87,7 @@ export const POST = async (req: NextRequest) => {
 
     const orderToUpdate = {
       status: orderStatus,
-      payment_id_mp: paymentId, // Guardar el payment_id para referencia
-      // Opcional: guardar más datos del pago
-      payment_method: paymentDetails.payment_method_id,
-      transaction_amount: paymentDetails.transaction_amount,
+      payment_id_mp: paymentId,
       updated_at: new Date().toISOString(),
     };
 
