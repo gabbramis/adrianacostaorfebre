@@ -77,11 +77,11 @@ export async function mercadopagoPayment(orderData: OrderData) {
             zip_code: orderData.customerInfo.postalCode,
           },
         },
-        //back_urls: {
-        //success: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/payment-success`, // <-- ¡IMPORTANTE!
-        // failure: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/payment-failure`,
-        //pending: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/payment-pending`,
-        //},
+        back_urls: {
+          success: `${process.env.NEXT_PUBLIC_BASE_URL}`,
+          failure: `${process.env.NEXT_PUBLIC_BASE_URL}`,
+          pending: `${process.env.NEXT_PUBLIC_BASE_URL}`,
+        },
         auto_return: "approved",
       },
     });
