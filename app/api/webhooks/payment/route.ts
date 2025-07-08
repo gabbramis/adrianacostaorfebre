@@ -52,22 +52,12 @@ export const POST = async (req: NextRequest) => {
     const paymentDetails = await response.json();
     console.log("Detalles del pago obtenidos de Mercado Pago:", paymentDetails);
 
-    const orderToInsert = {
-      mp_payment_id: paymentDetails.id,
-
-      total_amount: paymentDetails.transaction_amount, // Monto total de la transacción
-      currency: paymentDetails.currency_id, // Moneda (ej. UYU)
-      status: paymentDetails.status, // Estado del pago (ej. 'approved')
-      description: paymentDetails.description, // Descripción del pago (ej. 'Checkout')
-      payment_method_id: paymentDetails.payment_method_id, // Método de pago (ej. 'account_money')
-      created_at: paymentDetails.date_created, // Fecha de creación del pago
-      approved_at: paymentDetails.date_approved, // Fecha de aprobación del pago
-      payer_email: paymentDetails.payer?.email, // Email del comprador (usa optional chaining ?. por si no existe)
-      payer_id: paymentDetails.payer?.id, // ID del comprador en MP
+    const orderToUpdate = {
+      status: paymentDetails.status,
     };
 
     // Imprime el objeto que vas a insertar para verificar que esté bien formado
-    console.log("Objeto a insertar en Supabase:", orderToInsert);
+    console.log("Objeto a insertar en Supabase:", orderToUpdate);
 
     // Llamada a supabase
     const supabase = await createSupabaseServer();
@@ -75,17 +65,18 @@ export const POST = async (req: NextRequest) => {
     // Insertar el record
     const { data: orderData, error: supabaseError } = await supabase
       .from("orders")
-      .insert(orderToInsert);
+      .update(orderToUpdate)
+      .eq("payment_intent_id", paymentDetails.id);
 
     if (supabaseError) {
-      console.error("Error al insertar la orden en Supabase:", supabaseError);
+      console.error("Error al actualizar la orden en Supabase:", supabaseError);
       return NextResponse.json(
         { message: "Error al guardar la orden" },
         { status: 500 }
       );
     }
 
-    console.log("Orden guardada exitosamente en Supabase:", orderData);
+    console.log("Orden actualizada exitosamente en Supabase:", orderData);
 
     return NextResponse.json(
       { message: "Webhook procesado exitosamente", order: orderData },

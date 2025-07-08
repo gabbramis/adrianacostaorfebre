@@ -133,24 +133,8 @@ export default function CartPage() {
     };
 
     try {
-      const {
-        success,
-        orderId: newOrderId,
-        error,
-      } = await createOrder(orderData);
-
-      if (!success) {
-        console.error("Error al guardar la orden en Supabase:", error);
-        alert("Hubo un error al procesar tu pedido. Intenta de nuevo.");
-        setIsProcessing(false);
-        return;
-      }
-
-      setOrderId(newOrderId);
-
       if (paymentMethod === "mercadopago") {
         const formData = new FormData();
-        formData.append("orderId", newOrderId!);
         formData.append("products", JSON.stringify(orderData.items));
         formData.append("totalPrice", orderData.totalPrice.toString());
         formData.append("customerInfo", JSON.stringify(orderData.customerInfo));
@@ -178,11 +162,20 @@ export default function CartPage() {
           setIsProcessing(false);
         }
       } else if (paymentMethod === "transfer") {
-        // Lógica para el método de pago por transferencia bancaria
-        // La orden ya está guardada en Supabase con estado 'pending'
-        console.log("Procesando pago por transferencia bancaria...");
-        // Aquí podrías mostrar un modal con instrucciones o redirigir a una página de confirmación
-        // con los datos bancarios y el orderId generado.
+        const {
+          success,
+          orderId: newOrderId,
+          error,
+        } = await createOrder(orderData);
+
+        if (!success) {
+          console.error("Error al guardar la orden en Supabase:", error);
+          alert("Hubo un error al procesar tu pedido. Intenta de nuevo.");
+          setIsProcessing(false);
+          return;
+        }
+
+        setOrderId(newOrderId);
         setConfirmedOrderTotal(currentCalculatedTotal);
         setOrderComplete(true);
 

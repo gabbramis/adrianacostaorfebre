@@ -18,7 +18,7 @@ export async function mercadopagoPayment(orderData: OrderData) {
     // IMPORTANT: Create the order in Supabase BEFORE creating the Mercado Pago preference
     // This way, you have an order ID to link the payment preference to.
     const orderCreationResult = await createOrder(orderData); // Call your existing createOrder action
-
+    console.log("Order creation result:", orderCreationResult);
     if (!orderCreationResult.success) {
       console.error(
         "Failed to create order before Mercado Pago preference:",
