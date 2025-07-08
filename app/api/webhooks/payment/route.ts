@@ -66,7 +66,8 @@ export const POST = async (req: NextRequest) => {
     const { data: orderData, error: supabaseError } = await supabase
       .from("orders")
       .update(orderToUpdate)
-      .eq("payment_intent_id", paymentDetails.id);
+      .eq("payment_intent_id", paymentId)
+      .single();
 
     if (supabaseError) {
       console.error("Error al actualizar la orden en Supabase:", supabaseError);
