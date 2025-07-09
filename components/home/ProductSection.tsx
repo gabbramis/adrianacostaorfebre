@@ -15,7 +15,7 @@ export default function ProductSection() {
           <Card className="border-0 shadow-lg overflow-hidden">
             <div className="relative aspect-square p-4">
               <img
-                src="/producto-1.jpg"
+                src="/producto-4.jpg"
                 alt="Plata Reticulada Ring"
                 className="object-contain w-full h-full transition-transform hover:scale-105 duration-500 shadow-sm"
               />
@@ -28,9 +28,9 @@ export default function ProductSection() {
               </p>
             </CardContent>
             <CardFooter className="px-4 pb-4 pt-0">
-              <Link href="#" className="w-full">
+              <Link href="/galeria" className="w-full">
                 <Button variant="outline" className="w-full text-sm py-2">
-                  Ver Colección
+                  Ver Caravanas
                 </Button>
               </Link>
             </CardFooter>
@@ -40,22 +40,22 @@ export default function ProductSection() {
           <Card className="border-0 shadow-lg overflow-hidden">
             <div className="relative aspect-square p-4">
               <img
-                src="/producto-1.jpg"
+                src="/producto-6.jpg"
                 alt="Plata Reticulada Ring"
                 className="object-contain w-full h-full transition-transform hover:scale-105 duration-500 shadow-sm"
               />
             </div>
             <CardContent className="pt-3 pb-2 px-4">
-              <h3 className="text-lg font-medium mb-1">Colección Naturaleza</h3>
+              <h3 className="text-lg font-medium mb-1">Nuestros Colgantes</h3>
               <p className="text-sm text-gray-600 mb-3">
-                Inspirada en las formas orgánicas y la belleza de la naturaleza
-                uruguaya.
+                Diseños en plata y piedras naturales que evocan la armonía y
+                fuerza de la naturaleza uruguaya. Piezas con alma propia.
               </p>
             </CardContent>
             <CardFooter className="px-4 pb-4 pt-0">
-              <Link href="#" className="w-full">
+              <Link href="/galeria" className="w-full">
                 <Button variant="outline" className="w-full text-sm py-2">
-                  Ver Colección
+                  Ver Colgantes
                 </Button>
               </Link>
             </CardFooter>
@@ -71,16 +71,17 @@ export default function ProductSection() {
               />
             </div>
             <CardContent className="pt-3 pb-2 px-4">
-              <h3 className="text-lg font-medium mb-1">Colección Naturaleza</h3>
+              <h3 className="text-lg font-medium mb-1">Nuestros Anillos</h3>
               <p className="text-sm text-gray-600 mb-3">
-                Inspirada en las formas orgánicas y la belleza de la naturaleza
-                uruguaya.
+                Diseños en plata y piedras naturales que reflejan la belleza
+                orgánica de la naturaleza uruguaya. Cada pieza es única, como
+                quien la lleva.
               </p>
             </CardContent>
             <CardFooter className="px-4 pb-4 pt-0">
-              <Link href="#" className="w-full">
+              <Link href="/galeria" className="w-full">
                 <Button variant="outline" className="w-full text-sm py-2">
-                  Ver Colección
+                  Ver Anillos
                 </Button>
               </Link>
             </CardFooter>
