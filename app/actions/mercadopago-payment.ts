@@ -98,7 +98,7 @@ export async function mercadopagoPayment(orderData: OrderData) {
       .from("orders") // Your orders table
       .update({
         payment_intent_id: preferenceId,
-        status: "pending_payment", // Or 'pending_mercadopago'
+        status: "pendiente", // Or 'pending_mercadopago'
       })
       .eq("id", orderId);
 

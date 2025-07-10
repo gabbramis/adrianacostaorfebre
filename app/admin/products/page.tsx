@@ -1,13 +1,45 @@
-// app/admin/products/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { Edit, Trash2 } from "lucide-react";
-import CrearProductoButton from "@/components/admin/CrearProductoButton";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Search,
+  Plus,
+  Edit,
+  Package,
+  Eye,
+  Trash2,
+  Grid3X3,
+  List,
+} from "lucide-react";
 import { createSupabaseClient } from "@/utils/supabase/client";
+import CrearProductoButton from "@/components/admin/CrearProductoButton";
 
 export interface Producto {
   id: string;
@@ -24,6 +56,9 @@ export interface Producto {
 }
 
 export default function AdminProductsPage() {
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState("grid"); // grid or table
   const [productos, setProductos] = useState<Producto[]>([]);
   const [productoParaEditar, setProductoParaEditar] = useState<Producto | null>(
     null
@@ -47,6 +82,7 @@ export default function AdminProductsPage() {
   useEffect(() => {
     cargarProductos();
   }, []);
+
   const handleDelete = async (id: string, productName: string) => {
     if (
       !confirm(
@@ -73,8 +109,6 @@ export default function AdminProductsPage() {
         throw new Error(errorMessage);
       }
 
-      // Si la eliminación fue exitosa (código 204 No Content), no hay cuerpo JSON
-      // Actualizar el estado local para reflejar el cambio
       setProductos((prevProducts) => prevProducts.filter((p) => p.id !== id));
       alert(`"${productName}" eliminado correctamente.`);
     } catch (error) {
@@ -83,141 +117,494 @@ export default function AdminProductsPage() {
     }
   };
 
-  // Función para manejar el clic en "Editar" (abre el diálogo en modo edición)
   const handleEditClick = (producto: Producto) => {
-    setProductoParaEditar(producto); // Establece el producto que se va a editar
-    setDialogoAbierto(true); // Abre el diálogo
-  };
-
-  // Función para manejar el clic en "Crear Producto" (abre el diálogo en modo creación)
-  const handleCreateClick = () => {
-    setProductoParaEditar(null); // Asegura que el diálogo se abra en modo "Crear"
+    setProductoParaEditar(producto);
     setDialogoAbierto(true);
   };
 
-  // Función que se pasa al diálogo para que actualice la lista de productos
-  const handleProductsChange = (updatedProducts: Producto[]) => {
-    setProductos(updatedProducts); // Actualiza la lista completa de productos
-    // Opcional: podrías recargar los productos de la base de datos para asegurar consistencia,
-    // pero actualizar el estado local directamente es más rápido.
-    // cargarProductos();
+  const handleCreateClick = () => {
+    setProductoParaEditar(null);
+    setDialogoAbierto(true);
   };
 
-  return (
-    <main className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Control de inventario
-        </h1>
-        <Button onClick={handleCreateClick}>
-          {" "}
-          {/* Usar la nueva función */}
-          Crear Producto
-        </Button>
-      </div>
+  const handleProductsChange = (updatedProducts: Producto[]) => {
+    setProductos(updatedProducts);
+  };
 
-      {isLoading ? (
-        <div className="text-center text-gray-500 py-10">
-          Cargando productos...
-        </div>
-      ) : productos.length === 0 ? (
-        <div className="border rounded-lg p-8 text-center text-gray-500 bg-gray-50">
-          <p>Aún no hay productos registrados.</p>
-          <p className="mt-2">¡Haz clic en Crear Producto para empezar!</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {" "}
-          {/* Espaciado ajustado */}
-          {productos.map((producto) => {
-            // Determinar la imagen principal para la tarjeta
-            const primaryImageSrc =
-              producto.image && producto.image.length > 0
-                ? producto.image[0]
-                : "/placeholder-product.png"; // Ruta a tu imagen de placeholder
+  const categories = [
+    ...new Set(productos.map((p) => p.category).filter(Boolean)),
+  ];
 
-            return (
-              <Card key={producto.id} className="flex flex-col h-full">
-                {" "}
-                {/* Asegurar altura completa de la tarjeta */}
-                <CardContent className="p-4 flex-grow">
-                  {" "}
-                  {/* flex-grow para que ocupe espacio disponible */}
-                  <div className="aspect-square w-full mb-4 bg-gray-100 rounded-md overflow-hidden flex items-center justify-center">
-                    <img
-                      src={primaryImageSrc}
-                      alt={producto.name}
-                      className="w-full h-full object-contain" // object-contain para que la imagen completa sea visible
-                    />
-                  </div>
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-lg leading-tight pr-2">
-                      {producto.name}
-                    </h3>{" "}
-                    {/* Ajustes de texto */}
-                    <Badge
-                      variant={
-                        producto.stock && producto.stock > 0
-                          ? "outline"
-                          : "destructive"
-                      }
-                      className="whitespace-nowrap" // Evitar que el texto de la insignia se rompa
-                    >
-                      {producto.stock && producto.stock > 0
-                        ? `Stock: ${producto.stock}`
-                        : "Sin stock"}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-2">
-                    {producto.description || "Sin descripción."}{" "}
-                    {/* Fallback para descripción */}
-                  </p>
-                  <div className="flex justify-between items-center mt-auto">
-                    {" "}
-                    {/* mt-auto empuja al final si hay espacio */}
-                    <span className="font-bold text-lg">
-                      ${producto.price.toFixed(2)}
-                    </span>{" "}
-                    {/* Formato de precio */}
-                    <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
-                      {producto.category}
+  const getProductStatus = (product: Producto) => {
+    const stock = product.stock || 0;
+    if (stock === 0) return "out_of_stock";
+    if (stock <= 5) return "low_stock";
+    return "in_stock";
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      out_of_stock: {
+        label: "Sin Stock",
+        color: "bg-red-100 text-red-800 border-red-200",
+      },
+      low_stock: {
+        label: "Stock Bajo",
+        color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      },
+      in_stock: {
+        label: "En Stock",
+        color: "bg-green-100 text-green-800 border-green-200",
+      },
+    };
+    return (
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.in_stock
+    );
+  };
+
+  const filteredProducts = productos.filter((product) => {
+    const matchesCategory =
+      selectedCategory === "all" || product.category === selectedCategory;
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.id.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const ProductDetailDialog = ({ product }: { product: Producto }) => {
+    const primaryImageSrc =
+      product.image && product.image.length > 0
+        ? product.image[0]
+        : "/placeholder.svg?height=200&width=200";
+    const productStatus = getProductStatus(product);
+
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm">
+            <Eye className="w-4 h-4" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalles del Producto</DialogTitle>
+            <DialogDescription>
+              Información completa del inventario
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <img
+                src={primaryImageSrc || "/placeholder.svg"}
+                alt={product.name}
+                className="w-20 h-20 object-cover rounded-lg border"
+              />
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold">{product.name}</h3>
+                <p className="text-gray-600">
+                  {product.category} • ID: {product.id}
+                </p>
+                <Badge
+                  className={`mt-2 ${getStatusBadge(productStatus).color}`}
+                >
+                  {getStatusBadge(productStatus).label}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    Información de Stock
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Stock Actual:</span>
+                    <span className="font-semibold">
+                      {product.stock || 0} unidades
                     </span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Estado:</span>
+                    <span
+                      className={
+                        product.is_posted ? "text-green-600" : "text-gray-600"
+                      }
+                    >
+                      {product.is_posted ? "Publicado" : "No publicado"}
+                    </span>
+                  </div>
+                  {product.materials && product.materials.length > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Materiales:</span>
+                      <span>{product.materials.join(", ")}</span>
+                    </div>
+                  )}
                 </CardContent>
-                <CardFooter className="p-4 pt-0 flex justify-end gap-2 border-t mt-4">
-                  {" "}
-                  {/* Separador visual */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditClick(producto)}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(producto.id, producto.name)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Eliminar
-                  </Button>
-                </CardFooter>
               </Card>
-            );
-          })}
-        </div>
-      )}
 
-      {/* El diálogo de Crear/Editar Producto */}
-      <CrearProductoButton
-        open={dialogoAbierto}
-        products={productos}
-        onProductsChange={handleProductsChange}
-        onOpenChange={setDialogoAbierto}
-        productoInicial={productoParaEditar}
-      />
-    </main>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    Información Financiera
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Precio de Venta:</span>
+                    <span className="font-semibold">${product.price}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Valor en Stock:</span>
+                    <span className="font-semibold">
+                      ${((product.stock || 0) * product.price).toFixed(2)}
+                    </span>
+                  </div>
+                  {product.popularity && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Popularidad:</span>
+                      <span>{product.popularity}/10</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {product.description && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Descripción</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-900">{product.description}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="flex gap-3">
+              <Button
+                className="flex-1"
+                onClick={() => handleEditClick(product)}
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Editar Producto
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={() => handleDelete(product.id, product.name)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Eliminar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const ProductCard = ({ product }: { product: Producto }) => {
+    const primaryImageSrc =
+      product.image && product.image.length > 0
+        ? product.image[0]
+        : "/placeholder-product.png";
+    const productStatus = getProductStatus(product);
+
+    return (
+      <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
+        <CardContent className="p-4 flex-grow">
+          <div className="aspect-square w-full mb-4 bg-gray-100 rounded-md overflow-hidden flex items-center justify-center">
+            <img
+              src={primaryImageSrc}
+              alt={product.name}
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-semibold text-lg leading-tight pr-2">
+              {product.name}
+            </h3>
+            <Badge
+              className={`whitespace-nowrap ${
+                getStatusBadge(productStatus).color
+              }`}
+            >
+              {product.stock && product.stock > 0
+                ? `Stock: ${product.stock}`
+                : "Sin stock"}
+            </Badge>
+          </div>
+          <p className="text-sm text-gray-500 line-clamp-2 mb-2">
+            {product.description || "Sin descripción."}
+          </p>
+          <div className="flex justify-between items-center mt-auto">
+            <span className="font-bold text-lg">
+              ${product.price.toFixed(2)}
+            </span>
+            <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
+              {product.category}
+            </span>
+          </div>
+        </CardContent>
+        <div className="p-4 pt-0 flex justify-between gap-2 border-t">
+          <div className="flex gap-2">
+            <ProductDetailDialog product={product} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleEditClick(product)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDelete(product.id, product.name)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <Badge variant={product.is_posted ? "default" : "secondary"}>
+            {product.is_posted ? "Publicado" : "No publicado"}
+          </Badge>
+        </div>
+      </Card>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-3 text-gray-600">Cargando productos...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Control de inventario
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Administra tu inventario y catálogo de productos
+              </p>
+            </div>
+            <Button
+              onClick={handleCreateClick}
+              className="bg-black hover:bg-gray-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Crear Producto
+            </Button>
+          </div>
+        </div>
+
+        {/* Filters and Search */}
+        <Card className="bg-white shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar productos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger className="w-full lg:w-48">
+                  <SelectValue placeholder="Categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las Categorías</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex gap-2">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "table" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("table")}
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Products Display */}
+        <Card className="bg-white shadow-sm">
+          <CardContent className="p-6">
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No hay productos
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {productos.length === 0
+                    ? "Aún no hay productos registrados."
+                    : "No se encontraron productos con los filtros aplicados."}
+                </p>
+                <p className="text-gray-500 mb-4">
+                  ¡Haz clic en Crear Producto para empezar!
+                </p>
+                <Button
+                  onClick={handleCreateClick}
+                  className="bg-gray-600 hover:bg-gray-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Producto
+                </Button>
+              </div>
+            ) : viewMode === "grid" ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Lista de Productos</h3>
+                  <span className="text-sm text-gray-600">
+                    {filteredProducts.length} productos encontrados
+                  </span>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Producto</TableHead>
+                      <TableHead>Categoría</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Precio</TableHead>
+                      <TableHead>Valor Stock</TableHead>
+                      <TableHead>Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProducts.map((product) => {
+                      const primaryImageSrc =
+                        product.image && product.image.length > 0
+                          ? product.image[0]
+                          : "/placeholder-product.png";
+                      const productStatus = getProductStatus(product);
+
+                      return (
+                        <TableRow key={product.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={
+                                  primaryImageSrc || "/placeholder-product.png"
+                                }
+                                alt={product.name}
+                                className="w-10 h-10 object-cover rounded border"
+                              />
+                              <div>
+                                <p className="font-medium">{product.name}</p>
+                                <p className="text-sm text-gray-600">
+                                  {product.is_posted
+                                    ? "Publicado"
+                                    : "No publicado"}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {product.category || "Sin categoría"}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-center">
+                              <p className="font-semibold">
+                                {product.stock || 0}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={getStatusBadge(productStatus).color}
+                            >
+                              {getStatusBadge(productStatus).label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-semibold">
+                            ${product.price}
+                          </TableCell>
+                          <TableCell className="font-semibold">
+                            ${((product.stock || 0) * product.price).toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <ProductDetailDialog product={product} />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditClick(product)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleDelete(product.id, product.name)
+                                }
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* CrearProductoButton Dialog */}
+        <CrearProductoButton
+          open={dialogoAbierto}
+          products={productos}
+          onProductsChange={handleProductsChange}
+          onOpenChange={setDialogoAbierto}
+          productoInicial={productoParaEditar}
+        />
+      </div>
+    </div>
   );
 }

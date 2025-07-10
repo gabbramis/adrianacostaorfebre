@@ -480,16 +480,6 @@ export default function AdminContactsPanel() {
             <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
               Cerrar
             </Button>
-            <Button
-              onClick={() => {
-                if (selectedContact?.email) {
-                  window.open(`mailto:${selectedContact.email}`, "_blank");
-                }
-              }}
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              Responder
-            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

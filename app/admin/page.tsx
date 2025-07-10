@@ -14,9 +14,7 @@ import {
   DollarSign,
   Users,
   AlertTriangle,
-  CheckCircle,
   Clock,
-  Eye,
   ArrowRight,
   RefreshCw,
 } from "lucide-react";
@@ -422,57 +420,6 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm">Órdenes Hoy</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {stats.todayOrders}
-                  </p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-full">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm">Productos Publicados</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {stats.publishedProducts}
-                  </p>
-                </div>
-                <div className="p-3 bg-blue-100 rounded-full">
-                  <Eye className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm">Sin Stock</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {stats.outOfStockProducts}
-                  </p>
-                </div>
-                <div className="p-3 bg-red-100 rounded-full">
-                  <AlertTriangle className="h-6 w-6 text-red-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Recent Orders */}
@@ -529,7 +476,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Contactos Recientes</CardTitle>
-              <Link href="/admin/contacts">
+              <Link href="/admin/messages">
                 <Button
                   variant="ghost"
                   size="sm"
