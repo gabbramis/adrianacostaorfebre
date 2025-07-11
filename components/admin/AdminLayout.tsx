@@ -5,16 +5,14 @@ import type React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard,
   ShoppingCart,
   Package,
   Menu,
-  Bell,
-  User,
   LogOut,
-  Settings,
+  Percent,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -46,21 +44,24 @@ export default function AdminLayout({
       href: "/admin/orders",
       icon: ShoppingCart,
       current: pathname === "/admin/orders",
-      badge: "12",
     },
     {
       name: "Control de Inventario",
       href: "/admin/products",
       icon: Package,
       current: pathname === "/admin/products",
-      badge: "3",
     },
     {
       name: "Gestión de Mensajes",
       href: "/admin/messages",
-      icon: Package,
+      icon: Mail,
       current: pathname === "/admin/messages",
-      badge: "3",
+    },
+    {
+      name: "Códigos de Descuento",
+      href: "/admin/discount-codes",
+      icon: Percent,
+      current: pathname === "/admin/discount-codes",
     },
   ];
 
@@ -92,20 +93,11 @@ export default function AdminLayout({
               <item.icon className="w-5 h-5" />
               {item.name}
             </div>
-            {item.badge && (
-              <Badge variant="secondary" className="text-xs">
-                {item.badge}
-              </Badge>
-            )}
           </Link>
         ))}
       </nav>
 
       <div className="border-t px-4 py-4 space-y-2">
-        <Button variant="ghost" className="w-full justify-start" size="sm">
-          <Settings className="w-4 h-4 mr-3" />
-          Configuración
-        </Button>
         <Button
           variant="ghost"
           className="w-full justify-start"
@@ -138,22 +130,6 @@ export default function AdminLayout({
                 <Sidebar mobile />
               </SheetContent>
             </Sheet>
-
-            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-              <div className="flex flex-1"></div>
-              <div className="flex items-center gap-x-4 lg:gap-x-6">
-                <Button variant="ghost" size="sm" className="relative">
-                  <Bell className="w-5 h-5" />
-                  <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 text-xs">
-                    3
-                  </Badge>
-                </Button>
-                <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" />
-                <Button variant="ghost" size="sm">
-                  <User className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
           </div>
 
           <main className="py-6">
