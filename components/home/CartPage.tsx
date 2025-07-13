@@ -219,7 +219,7 @@ export default function CartPage() {
 
     setErrors(newErrors);
 
-    return true;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleInputChange = (field: keyof CustomerInfo, value: string) => {
@@ -230,8 +230,10 @@ export default function CartPage() {
   };
 
   const handleNextStep = () => {
-    if (currentStep === 1 && validateForm()) {
-      setCurrentStep(2);
+    if (currentStep === 1) {
+      if (validateForm()) {
+        setCurrentStep(2);
+      }
     } else if (currentStep === 2) {
       setCurrentStep(3);
     }
