@@ -252,29 +252,15 @@ export default function CartPage() {
       const isValid = validateForm();
 
       if (isValid) {
-        // Dar tiempo al DOM para actualizar antes de cambiar el step
-        setTimeout(() => {
-          flushSync(() => {
-            setCurrentStep(2);
-          });
-        }, 0);
+        flushSync(() => {
+          setCurrentStep(2);
+        });
       }
     } else if (currentStep === 2) {
-      setTimeout(() => {
-        flushSync(() => {
-          setCurrentStep(3);
-        });
-      }, 0);
+      flushSync(() => {
+        setCurrentStep(3);
+      });
     }
-  };
-
-  const handleNextStepWithPreventDefault = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    handleNextStep();
   };
 
   const handlePreviousStep = () => {
@@ -894,8 +880,7 @@ export default function CartPage() {
 
                 {currentStep < 3 ? (
                   <Button
-                    onTouchStart={() => handleNextStepWithPreventDefault()}
-                    onClick={handleNextStepWithPreventDefault}
+                    onClick={handleNextStep}
                     className="bg-stone-800 hover:bg-stone-700 px-8"
                   >
                     Continuar
