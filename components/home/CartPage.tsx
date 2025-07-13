@@ -219,7 +219,7 @@ export default function CartPage() {
 
     setErrors(newErrors);
 
-    return Object.keys(newErrors).length === 0;
+    return true;
   };
 
   const handleInputChange = (field: keyof CustomerInfo, value: string) => {
