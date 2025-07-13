@@ -188,29 +188,37 @@ export default function CartPage() {
     }
   };
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     const newErrors: Partial<CustomerInfo> = {};
 
-    if (!customerInfo.firstName.trim())
-      newErrors.firstName = "El nombre es requerido";
-    if (!customerInfo.lastName.trim())
-      newErrors.lastName = "El apellido es requerido";
-    if (!customerInfo.email.trim()) newErrors.email = "El email es requerido";
-    if (!customerInfo.phone.trim())
-      newErrors.phone = "El teléfono es requerido";
-
-    if (deliveryMethod === "shipping") {
-      if (!customerInfo.address.trim())
-        newErrors.address = "La dirección es requerida";
-      if (!customerInfo.city.trim()) newErrors.city = "La ciudad es requerida";
+    if (!(customerInfo.firstName || "").trim()) {
+      newErrors.firstName = "El nombre es obligatorio";
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (customerInfo.email && !emailRegex.test(customerInfo.email)) {
-      newErrors.email = "Formato de email inválido";
+    if (!(customerInfo.lastName || "").trim()) {
+      newErrors.lastName = "El apellido es obligatorio";
+    }
+
+    if (!(customerInfo.email || "").trim()) {
+      newErrors.email = "El email es obligatorio";
+    }
+
+    if (!(customerInfo.phone || "").trim()) {
+      newErrors.phone = "El teléfono es obligatorio";
+    }
+
+    if (deliveryMethod === "shipping") {
+      if (!(customerInfo.address || "").trim()) {
+        newErrors.address = "La dirección es obligatoria";
+      }
+
+      if (!(customerInfo.city || "").trim()) {
+        newErrors.city = "La ciudad es obligatoria";
+      }
     }
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
