@@ -11,7 +11,6 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { flushSync } from "react-dom";
 import {
   ShoppingBag,
   ArrowLeft,
@@ -30,7 +29,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import OrderConfirmation from "./OrderConfirmation";
 
 interface CustomerInfo {
@@ -46,8 +45,6 @@ interface CustomerInfo {
 
 export default function CartPage() {
   const { state, getTotalPrice, getShipping, clearCart } = useCart();
-  //const [promoCode, setPromoCode] = useState("");
-  //const [promoApplied, setPromoApplied] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -95,15 +92,6 @@ export default function CartPage() {
       minimumFractionDigits: 0,
     }).format(price);
   };
-
-  //const handlePromoCode = () => {
-  //if (promoCode.toLowerCase() === "bienvenido") {
-  //setPromoApplied(true);
-  //}
-  //setPromoCode("");
-  //};
-
-  // Estado para guardar el ID de la orden
 
   const calculateShipping = () => {
     return deliveryMethod === "pickup" ? 0 : getShipping();
@@ -179,7 +167,6 @@ export default function CartPage() {
         setOrderId(newOrderId);
         setConfirmedOrderTotal(currentCalculatedTotal);
         setOrderComplete(true);
-
         setIsProcessing(false);
       }
     } catch (error) {
@@ -189,7 +176,7 @@ export default function CartPage() {
     }
   };
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: Partial<CustomerInfo> = {};
 
     // Validaciones
@@ -219,55 +206,59 @@ export default function CartPage() {
       }
     }
 
-    // SOLUCIÓN: Usar flushSync para forzar actualización síncrona
-    flushSync(() => {
+    // Usar setTimeout para evitar conflictos con flushSync en Android
+    setTimeout(() => {
       setErrors(newErrors);
-    });
+    }, 0);
 
     return Object.keys(newErrors).length === 0;
-  };
+  }, [customerInfo, deliveryMethod]);
 
-  const handleInputChange = (field: keyof CustomerInfo, value: string) => {
-    flushSync(() => {
+  const handleInputChange = useCallback(
+    (field: keyof CustomerInfo, value: string) => {
       setCustomerInfo((prev) => ({
         ...prev,
         [field]: value,
       }));
-    });
 
-    // Limpiar errores de forma separada
-    if (errors[field]) {
-      flushSync(() => {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[field];
-          return newErrors;
-        });
-      });
-    }
-  };
+      // Limpiar errores después de un pequeño delay
+      if (errors[field]) {
+        setTimeout(() => {
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors[field];
+            return newErrors;
+          });
+        }, 100);
+      }
+    },
+    [errors]
+  );
 
-  const handleNextStep = () => {
+  const handleNextStep = useCallback(() => {
     if (currentStep === 1) {
       const isValid = validateForm();
 
       if (isValid) {
-        flushSync(() => {
+        // Usar setTimeout para evitar conflictos de rendering en Android
+        setTimeout(() => {
           setCurrentStep(2);
-        });
+        }, 0);
       }
     } else if (currentStep === 2) {
-      flushSync(() => {
+      setTimeout(() => {
         setCurrentStep(3);
-      });
+      }, 0);
     }
-  };
+  }, [currentStep, validateForm]);
 
-  const handlePreviousStep = () => {
+  const handlePreviousStep = useCallback(() => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      setTimeout(() => {
+        setCurrentStep(currentStep - 1);
+      }, 0);
     }
-  };
+  }, [currentStep]);
 
   if (state.items.length === 0 && !orderComplete) {
     return (
