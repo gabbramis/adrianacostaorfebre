@@ -894,7 +894,7 @@ export default function CartPage() {
 
                 {currentStep < 3 ? (
                   <Button
-                    onTouchStart={(e) => handleNextStepWithPreventDefault()}
+                    onTouchStart={() => handleNextStepWithPreventDefault()}
                     onClick={handleNextStepWithPreventDefault}
                     className="bg-stone-800 hover:bg-stone-700 px-8"
                   >
