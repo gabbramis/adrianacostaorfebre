@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { flushSync } from "react-dom";
 import {
   ShoppingBag,
   ArrowLeft,
@@ -191,6 +192,7 @@ export default function CartPage() {
   const validateForm = (): boolean => {
     const newErrors: Partial<CustomerInfo> = {};
 
+    // Validaciones
     if (!(customerInfo.firstName || "").trim()) {
       newErrors.firstName = "El nombre es obligatorio";
     }
@@ -217,26 +219,62 @@ export default function CartPage() {
       }
     }
 
-    setErrors(newErrors);
+    // SOLUCIÓN: Usar flushSync para forzar actualización síncrona
+    flushSync(() => {
+      setErrors(newErrors);
+    });
 
     return Object.keys(newErrors).length === 0;
   };
 
   const handleInputChange = (field: keyof CustomerInfo, value: string) => {
-    setCustomerInfo((prev) => ({ ...prev, [field]: value }));
+    flushSync(() => {
+      setCustomerInfo((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    });
+
+    // Limpiar errores de forma separada
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+      flushSync(() => {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      });
     }
   };
 
   const handleNextStep = () => {
     if (currentStep === 1) {
-      if (validateForm()) {
-        setCurrentStep(2);
+      const isValid = validateForm();
+
+      if (isValid) {
+        // Dar tiempo al DOM para actualizar antes de cambiar el step
+        setTimeout(() => {
+          flushSync(() => {
+            setCurrentStep(2);
+          });
+        }, 0);
       }
     } else if (currentStep === 2) {
-      setCurrentStep(3);
+      setTimeout(() => {
+        flushSync(() => {
+          setCurrentStep(3);
+        });
+      }, 0);
     }
+  };
+
+  const handleNextStepWithPreventDefault = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    handleNextStep();
   };
 
   const handlePreviousStep = () => {
@@ -856,7 +894,8 @@ export default function CartPage() {
 
                 {currentStep < 3 ? (
                   <Button
-                    onClick={handleNextStep}
+                    onTouchStart={(e) => handleNextStepWithPreventDefault()}
+                    onClick={handleNextStepWithPreventDefault}
                     className="bg-stone-800 hover:bg-stone-700 px-8"
                   >
                     Continuar
