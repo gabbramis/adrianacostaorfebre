@@ -15,9 +15,9 @@ export default function Footer() {
           <div className="md:col-span-2">
             <h3 className="text-2xl font-serif mb-4">Adrianacostaorfebre</h3>
             <p className="text-stone-400 mb-6 max-w-md">
-              Joyería artesanal única, creada con pasión y dedicación en
-              Uruguay. Cada pieza cuenta una historia y está diseñada para
-              perdurar en el tiempo.
+              Joyería artesanal en Uruguay. Joyas hechas a mano con plata, oro y
+              piedras naturales. Diseños exclusivos, delicados y con identidad.
+              Envíos desde Montevideo a todo el país.
             </p>
           </div>
 

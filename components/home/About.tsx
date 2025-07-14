@@ -13,21 +13,20 @@ export default function AboutSection() {
 
           <div>
             <h2 className="text-3xl md:text-4xl font-serif mb-6">
-              Nuestra Historia y Pasión
+              Conocé la historia detrás de cada joya
             </h2>
 
             <p className="text-lg mb-4 text-gray-700">
-              Soy Adriana, desde el año 2019 comencé mi formación como Orfebre
-              en la Escuela Pedro Figari. Trabajo con plata, oro y piedras
-              naturales, utilizando técnicas tradicionales.
+              Soy Adriana, orfebre desde 2019. Me formé en la Escuela Pedro
+              Figari y creo joyas artesanales en plata, oro y piedras naturales.
+              Trabajo con técnicas tradicionales, priorizando que cada pieza sea
+              delicada, irrepetible y con significado.
             </p>
 
             <p className="text-lg mb-6 text-gray-700">
-              Priorizo que cada joya sea delicada e irrepetible. Respetando los
-              tiempos del trabajo manual, revalorizando este oficio. Por eso más
-              que un accesorio; estás llevando una pieza hecha a mano, única y
-              con un significado especial, creada para perdurar y acompañarte en
-              tu propia historia.
+              Mis creaciones no son solo accesorios: son símbolos personales.
+              Hechas en Montevideo, con dedicación, para acompañarte en tu
+              historia.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 text-sm uppercase tracking-wider font-medium">

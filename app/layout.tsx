@@ -4,7 +4,8 @@ import { CartProvider } from "@/contexts/cart-context";
 import CartDrawer from "@/components/home/CartDrawer";
 
 export const metadata: Metadata = {
-  title: "Adrianacostaorfebre | Joyería Artesanal de Uruguay",
+  title:
+    "Adriana Costa Orfebre | Joyas Artesanales en Plata, Oro y Piedras Naturales",
   description:
     "Joyería artesanal única hecha a mano en Uruguay. Descubre nuestras colecciones de piezas exclusivas creadas con pasión y materiales de calidad.",
 };
