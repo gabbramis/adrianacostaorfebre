@@ -214,51 +214,43 @@ export default function CartPage() {
     };
   }, [customerInfo, deliveryMethod]);
 
-  const handleInputChange = useCallback(
-    (field: keyof CustomerInfo, value: string) => {
-      // Actualizar valor inmediatamente
-      setCustomerInfo((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+  const handleInputChange = (field: keyof CustomerInfo, value: string) => {
+    setCustomerInfo((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
 
-      // Limpiar error específico si existe
-      if (errors[field]) {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[field];
-          return newErrors;
-        });
-      }
-    },
-    [errors]
-  );
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
 
-  const handleNextStep = useCallback(() => {
+  const handleNextStep = () => {
     if (currentStep === 1) {
       setIsValidating(true);
-
       const validation = validateForm();
-
       if (validation.isValid) {
         setErrors({});
         setCurrentStep(2);
       } else {
         setErrors(validation.errors);
       }
-
       setIsValidating(false);
     } else if (currentStep === 2) {
       setCurrentStep(3);
     }
-  }, [currentStep, validateForm]);
+  };
 
-  const handlePreviousStep = useCallback(() => {
+  const handlePreviousStep = () => {
     if (currentStep > 1) {
-      setErrors({}); // Limpiar errores al retroceder
+      setErrors({});
       setCurrentStep(currentStep - 1);
     }
-  }, [currentStep]);
+  };
 
   if (state.items.length === 0 && !orderComplete) {
     return (
