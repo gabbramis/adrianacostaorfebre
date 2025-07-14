@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useMemo, useReducer, useTransition } from "react";
+import { startTransition } from "react";
 import {
   ShoppingBag,
   ArrowLeft,
@@ -215,8 +215,6 @@ export default function CartPage() {
       errors: newErrors,
     };
   }, [customerInfo, deliveryMethod]);
-
-  const [isPending, startTransition] = useTransition();
 
   const handleInputChange = useCallback(
     (field: keyof CustomerInfo, value: string) => {
