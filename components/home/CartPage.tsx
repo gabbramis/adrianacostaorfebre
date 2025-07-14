@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useMemo, useReducer, useTransition } from "react";
 import {
   ShoppingBag,
   ArrowLeft,
@@ -176,10 +177,13 @@ export default function CartPage() {
     }
   };
 
-  const validateForm = useCallback((): boolean => {
+  const validateForm = useCallback((): {
+    isValid: boolean;
+    errors: Partial<CustomerInfo>;
+  } => {
     const newErrors: Partial<CustomerInfo> = {};
 
-    // Validaciones
+    // Validaciones sin actualizar estado
     if (!(customerInfo.firstName || "").trim()) {
       newErrors.firstName = "El nombre es obligatorio";
     }
@@ -206,30 +210,31 @@ export default function CartPage() {
       }
     }
 
-    // Usar setTimeout para evitar conflictos con flushSync en Android
-    setTimeout(() => {
-      setErrors(newErrors);
-    }, 0);
-
-    return Object.keys(newErrors).length === 0;
+    return {
+      isValid: Object.keys(newErrors).length === 0,
+      errors: newErrors,
+    };
   }, [customerInfo, deliveryMethod]);
+
+  const [isPending, startTransition] = useTransition();
 
   const handleInputChange = useCallback(
     (field: keyof CustomerInfo, value: string) => {
+      // Actualización inmediata del input
       setCustomerInfo((prev) => ({
         ...prev,
         [field]: value,
       }));
 
-      // Limpiar errores después de un pequeño delay
+      // Actualización no urgente de errores
       if (errors[field]) {
-        setTimeout(() => {
+        startTransition(() => {
           setErrors((prev) => {
             const newErrors = { ...prev };
             delete newErrors[field];
             return newErrors;
           });
-        }, 100);
+        });
       }
     },
     [errors]
@@ -237,26 +242,24 @@ export default function CartPage() {
 
   const handleNextStep = useCallback(() => {
     if (currentStep === 1) {
-      const isValid = validateForm();
+      const validation = validateForm();
 
-      if (isValid) {
-        // Usar setTimeout para evitar conflictos de rendering en Android
-        setTimeout(() => {
-          setCurrentStep(2);
-        }, 0);
+      if (validation.isValid) {
+        // Batch update usando React 18 automatic batching
+        setErrors({});
+        setCurrentStep(2);
+      } else {
+        // Solo actualizar errores si hay errores
+        setErrors(validation.errors);
       }
     } else if (currentStep === 2) {
-      setTimeout(() => {
-        setCurrentStep(3);
-      }, 0);
+      setCurrentStep(3);
     }
   }, [currentStep, validateForm]);
 
   const handlePreviousStep = useCallback(() => {
     if (currentStep > 1) {
-      setTimeout(() => {
-        setCurrentStep(currentStep - 1);
-      }, 0);
+      setCurrentStep(currentStep - 1);
     }
   }, [currentStep]);
 
