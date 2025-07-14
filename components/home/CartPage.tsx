@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   ShoppingBag,
   ArrowLeft,
@@ -43,9 +43,38 @@ interface CustomerInfo {
   notes: string;
 }
 
+const useTranslationFix = () => {
+  const [isTranslated, setIsTranslated] = useState(false);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      // Detectar si la página fue traducida
+      const isTranslatedPage =
+        document.documentElement.hasAttribute("translated") ||
+        document.querySelector('[class*="translated"]') !== null ||
+        document.querySelector('[translate="no"]') !== null;
+
+      if (isTranslatedPage !== isTranslated) {
+        setIsTranslated(isTranslatedPage);
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "translate"],
+    });
+
+    return () => observer.disconnect();
+  }, [isTranslated]);
+
+  return isTranslated;
+};
+
 export default function CartPage() {
   const { state, getTotalPrice, getShipping, clearCart } = useCart();
-
+  const isTranslated = useTranslationFix();
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
@@ -87,6 +116,15 @@ export default function CartPage() {
       clearCart();
     }
   }, [orderComplete, paymentMethod, clearCart, state.items.length]);
+
+  useEffect(() => {
+    if (isTranslated) {
+      // Forzar re-validación del formulario después de traducción
+      setTimeout(() => {
+        setErrors({});
+      }, 200);
+    }
+  }, [isTranslated]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-UY", {
@@ -214,36 +252,55 @@ export default function CartPage() {
     };
   }, [customerInfo, deliveryMethod]);
 
-  const handleInputChange = (field: keyof CustomerInfo, value: string) => {
-    setCustomerInfo((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleInputChange = useCallback(
+    (field: keyof CustomerInfo, value: string) => {
+      // Usar setTimeout para evitar conflictos con la traducción
+      setTimeout(() => {
+        setCustomerInfo((prev) => ({
+          ...prev,
+          [field]: value,
+        }));
 
-    if (errors[field]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
-  };
+        // Limpiar error específico si existe
+        if (errors[field]) {
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors[field];
+            return newErrors;
+          });
+        }
+      }, 0);
+    },
+    [errors]
+  );
 
-  const handleNextStep = () => {
+  const handleNextStep = useCallback(() => {
     if (currentStep === 1) {
       setIsValidating(true);
-      const validation = validateForm();
-      if (validation.isValid) {
-        setErrors({});
-        setCurrentStep(2);
+
+      // Agregar delay si la página está traducida
+      const validateAndProceed = () => {
+        const validation = validateForm();
+
+        if (validation.isValid) {
+          setErrors({});
+          setCurrentStep(2);
+        } else {
+          setErrors(validation.errors);
+        }
+        setIsValidating(false);
+      };
+
+      if (isTranslated) {
+        // Pequeño delay para que la traducción se estabilice
+        setTimeout(validateAndProceed, 100);
       } else {
-        setErrors(validation.errors);
+        validateAndProceed();
       }
-      setIsValidating(false);
     } else if (currentStep === 2) {
       setCurrentStep(3);
     }
-  };
+  }, [currentStep, validateForm, isTranslated]);
 
   const handlePreviousStep = () => {
     if (currentStep > 1) {
@@ -299,7 +356,10 @@ export default function CartPage() {
 
   return (
     <>
-      <main className="pt-16 min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
+      <main
+        className="pt-16 min-h-screen bg-gradient-to-br from-stone-50 to-stone-100"
+        translate="no"
+      >
         <div className="container mx-auto px-4 py-8">
           {/* Header con progreso */}
           <motion.div
@@ -389,6 +449,7 @@ export default function CartPage() {
                                 errors.firstName ? "border-red-500" : ""
                               }
                               placeholder="Tu nombre"
+                              translate="no"
                             />
                             {errors.firstName && (
                               <p className="text-red-500 text-sm mt-1 flex items-center">
@@ -409,6 +470,7 @@ export default function CartPage() {
                                 errors.lastName ? "border-red-500" : ""
                               }
                               placeholder="Tu apellido"
+                              translate="no"
                             />
                             {errors.lastName && (
                               <p className="text-red-500 text-sm mt-1 flex items-center">
@@ -437,6 +499,7 @@ export default function CartPage() {
                                 errors.email ? "border-red-500" : ""
                               }`}
                               placeholder="tu@email.com"
+                              translate="no"
                             />
                           </div>
                           {errors.email && (
@@ -464,6 +527,7 @@ export default function CartPage() {
                                 errors.phone ? "border-red-500" : ""
                               }`}
                               placeholder="+598 99 123 456"
+                              translate="no"
                             />
                           </div>
                           {errors.phone && (
@@ -493,6 +557,7 @@ export default function CartPage() {
                                 errors.address ? "border-red-500" : ""
                               }`}
                               placeholder="Calle, número, apartamento"
+                              translate="no"
                             />
                           </div>
                           {errors.address && (
@@ -516,6 +581,7 @@ export default function CartPage() {
                               }
                               className={errors.city ? "border-red-500" : ""}
                               placeholder="Montevideo"
+                              translate="no"
                             />
                             {errors.city && (
                               <p className="text-red-500 text-sm mt-1 flex items-center">
@@ -533,6 +599,7 @@ export default function CartPage() {
                                 handleInputChange("postalCode", e.target.value)
                               }
                               placeholder="11000"
+                              translate="no"
                             />
                           </div>
                         </div>
@@ -549,6 +616,7 @@ export default function CartPage() {
                             }
                             placeholder="Instrucciones especiales, referencias de ubicación, etc."
                             rows={3}
+                            translate="no"
                           />
                         </div>
                       </CardContent>
