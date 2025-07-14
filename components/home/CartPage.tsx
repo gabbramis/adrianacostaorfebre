@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { startTransition } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   ShoppingBag,
   ArrowLeft,
@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useCallback } from "react";
 import OrderConfirmation from "./OrderConfirmation";
 
 interface CustomerInfo {
@@ -57,6 +56,8 @@ export default function CartPage() {
   console.log(orderId);
 
   const [confirmedOrderTotal, setConfirmedOrderTotal] = useState(0);
+
+  const [isValidating, setIsValidating] = useState(false);
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     firstName: "",
@@ -177,13 +178,9 @@ export default function CartPage() {
     }
   };
 
-  const validateForm = useCallback((): {
-    isValid: boolean;
-    errors: Partial<CustomerInfo>;
-  } => {
+  const validateForm = useCallback(() => {
     const newErrors: Partial<CustomerInfo> = {};
 
-    // Validaciones sin actualizar estado
     if (!(customerInfo.firstName || "").trim()) {
       newErrors.firstName = "El nombre es obligatorio";
     }
@@ -218,20 +215,18 @@ export default function CartPage() {
 
   const handleInputChange = useCallback(
     (field: keyof CustomerInfo, value: string) => {
-      // Actualización inmediata del input
+      // Actualizar valor inmediatamente
       setCustomerInfo((prev) => ({
         ...prev,
         [field]: value,
       }));
 
-      // Actualización no urgente de errores
+      // Limpiar error específico si existe
       if (errors[field]) {
-        startTransition(() => {
-          setErrors((prev) => {
-            const newErrors = { ...prev };
-            delete newErrors[field];
-            return newErrors;
-          });
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
         });
       }
     },
@@ -240,16 +235,18 @@ export default function CartPage() {
 
   const handleNextStep = useCallback(() => {
     if (currentStep === 1) {
+      setIsValidating(true);
+
       const validation = validateForm();
 
       if (validation.isValid) {
-        // Batch update usando React 18 automatic batching
         setErrors({});
         setCurrentStep(2);
       } else {
-        // Solo actualizar errores si hay errores
         setErrors(validation.errors);
       }
+
+      setIsValidating(false);
     } else if (currentStep === 2) {
       setCurrentStep(3);
     }
@@ -257,6 +254,7 @@ export default function CartPage() {
 
   const handlePreviousStep = useCallback(() => {
     if (currentStep > 1) {
+      setErrors({}); // Limpiar errores al retroceder
       setCurrentStep(currentStep - 1);
     }
   }, [currentStep]);
