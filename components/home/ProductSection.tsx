@@ -39,9 +39,9 @@ export default function ProductSection() {
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-stone-900 mb-4">
-            Explora Nuestras Colecciones
+            Explorá Nuestras Colecciones
           </h2>
-          <div className="w-16 h-px bg-amber-600 mx-auto mb-4"></div>
+          <div className="w-16 h-px bg-black mx-auto mb-4"></div>
           <p className="text-stone-600 max-w-2xl mx-auto text-sm md:text-base">
             Cada pieza cuenta una historia única, creada con técnicas
             artesanales y materiales nobles

@@ -13,7 +13,7 @@ export default function AboutSection() {
               />
             </div>
             {/* Elemento decorativo */}
-            <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-amber-100 rounded-full opacity-60 -z-10"></div>
+            <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-black rounded-full opacity-60 -z-10"></div>
           </div>
 
           {/* Contenido */}
@@ -23,7 +23,7 @@ export default function AboutSection() {
                 Conocé la historia detrás de cada joya
               </h2>
 
-              <div className="w-12 h-px bg-amber-600"></div>
+              <div className="w-12 h-px bg-black"></div>
             </div>
 
             <div className="space-y-4 text-stone-700">
@@ -44,7 +44,7 @@ export default function AboutSection() {
             {/* Detalles técnicos */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 pt-4">
               <div className="group">
-                <div className="border-l-2 border-amber-600 pl-4 py-3 hover:pl-5 transition-all duration-300">
+                <div className="border-l-2 border-black pl-4 py-3 hover:pl-5 transition-all duration-300">
                   <span className="block text-xs uppercase tracking-wider font-medium text-stone-500 mb-1">
                     Materiales
                   </span>
@@ -55,7 +55,7 @@ export default function AboutSection() {
               </div>
 
               <div className="group">
-                <div className="border-l-2 border-amber-600 pl-4 py-3 hover:pl-5 transition-all duration-300">
+                <div className="border-l-2 border-black pl-4 py-3 hover:pl-5 transition-all duration-300">
                   <span className="block text-xs uppercase tracking-wider font-medium text-stone-500 mb-1">
                     Hecho en
                   </span>
@@ -66,7 +66,7 @@ export default function AboutSection() {
               </div>
 
               <div className="group">
-                <div className="border-l-2 border-amber-600 pl-4 py-3 hover:pl-5 transition-all duration-300">
+                <div className="border-l-2 border-black pl-4 py-3 hover:pl-5 transition-all duration-300">
                   <span className="block text-xs uppercase tracking-wider font-medium text-stone-500 mb-1">
                     Desde
                   </span>
