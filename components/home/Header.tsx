@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Menu, X, ShoppingBag, User } from "lucide-react";
+import { Search, Menu, X, ShoppingBag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -144,16 +144,6 @@ export default function SiteHeader() {
               </form>
             </div>
 
-            {/* Desktop Account Button */}
-            <Link href="/account" passHref>
-              {" "}
-              {/* Changed Button to Link for better semantic HTML */}
-              <Button variant="ghost" size="icon" aria-label="Mi cuenta">
-                <User size={20} aria-hidden="true" />
-                <span className="sr-only">Mi cuenta</span>
-              </Button>
-            </Link>
-
             {/* Desktop Cart Button */}
             <Button
               variant="ghost"
@@ -222,17 +212,6 @@ export default function SiteHeader() {
                   <SheetTitle className="text-xl font-serif text-stone-800">
                     Menú
                   </SheetTitle>
-                  <SheetClose asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Cerrar menú"
-                      className="hover:bg-stone-100" // Added hover state for the close button
-                    >
-                      <X size={20} aria-hidden="true" />{" "}
-                      <span className="sr-only">Cerrar menú</span>
-                    </Button>
-                  </SheetClose>
                 </SheetHeader>
                 <nav
                   className="flex flex-col flex-grow py-6 overflow-y-auto px-6"
@@ -260,17 +239,7 @@ export default function SiteHeader() {
                     </SheetClose>
                   ))}
                 </nav>
-                <div className="py-6 border-t px-6">
-                  <SheetClose asChild>
-                    <Link
-                      href="/account"
-                      className="flex items-center text-stone-700 hover:text-stone-900 transition-colors py-2 px-4 rounded-md hover:bg-stone-50" // Added padding and hover
-                    >
-                      <User size={20} className="mr-3" aria-hidden="true" />{" "}
-                      <span className="font-medium">Mi cuenta</span>{" "}
-                    </Link>
-                  </SheetClose>
-                </div>
+                <div className="py-6 border-t px-6"></div>
               </SheetContent>
             </Sheet>
           </div>

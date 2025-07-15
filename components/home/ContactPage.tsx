@@ -20,7 +20,9 @@ import {
   Heart,
   Award,
   AlertCircle,
+  Sparkles,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface FormData {
   nombre: string;
@@ -160,15 +162,28 @@ export default function ContactPage() {
     <>
       <main className="pt-0">
         {/* Hero Section */}
-        <section className="bg-stone-800 text-white py-16">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-3xl md:text-5xl font-serif mb-4">Contacto</h1>
-            <p className="text-lg md:text-xl max-w-3xl mx-auto text-stone-300">
-              Estamos aquí para ayudarte a encontrar la pieza perfecta o crear
-              algo único especialmente para ti.
-            </p>
+        <div className="bg-gradient-to-br from-stone-800 via-stone-700 to-stone-900 text-white py-20 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+          <div className="container mx-auto px-4 text-center relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="flex items-center justify-center mb-6">
+                <Sparkles className="text-stone-300 mr-3" size={32} />
+                <h1 className="font-serif text-4xl md:text-6xl font-light tracking-wide">
+                  Contacto
+                </h1>
+                <Sparkles className="text-stone-300 ml-3" size={32} />
+              </div>
+              <p className="text-lg md:text-xl max-w-3xl mx-auto text-stone-300 font-light leading-relaxed">
+                Estamos aquí para ayudarte a encontrar la pieza perfecta o crear
+                algo único especialmente para ti.
+              </p>
+            </motion.div>
           </div>
-        </section>
+        </div>
 
         {/* Contenido Principal */}
         <section className="py-16">
