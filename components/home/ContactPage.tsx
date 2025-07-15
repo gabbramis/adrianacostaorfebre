@@ -11,9 +11,6 @@ import {
   Phone,
   Mail,
   Clock,
-  Instagram,
-  Facebook,
-  MessageCircle,
   Send,
   CheckCircle2,
   Gem,
@@ -22,6 +19,11 @@ import {
   AlertCircle,
   Sparkles,
 } from "lucide-react";
+import {
+  IconBrandFacebook,
+  IconBrandInstagram,
+  IconBrandWhatsapp,
+} from "@tabler/icons-react";
 import { motion } from "framer-motion";
 
 interface FormData {
@@ -397,21 +399,21 @@ export default function ContactPage() {
                       href="https://www.instagram.com/adrianacostaorfebre/"
                       className="w-10 h-10 bg-stone-800 text-white rounded-lg flex items-center justify-center hover:bg-stone-700 transition-colors"
                     >
-                      <Instagram size={20} />
+                      <IconBrandInstagram size={25} />
                       <span className="sr-only">Instagram</span>
                     </a>
                     <a
                       href="https://www.facebook.com/adrianacostaorfebre"
                       className="w-10 h-10 bg-stone-800 text-white rounded-lg flex items-center justify-center hover:bg-stone-700 transition-colors"
                     >
-                      <Facebook size={20} />
+                      <IconBrandFacebook size={25} />
                       <span className="sr-only">Facebook</span>
                     </a>
                     <a
                       href="https://wa.me/59891840146"
                       className="w-10 h-10 bg-green-600 text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors"
                     >
-                      <MessageCircle size={20} />
+                      <IconBrandWhatsapp size={25} />
                       <span className="sr-only">WhatsApp</span>
                     </a>
                   </div>
@@ -424,7 +426,7 @@ export default function ContactPage() {
         {/* Servicios */}
         <section className="py-16 bg-stone-50">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl font-serif text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-serif text-center mb-12">
               Nuestros Servicios
             </h2>
 
@@ -447,18 +449,22 @@ export default function ContactPage() {
         </section>
 
         {/* CTA Final */}
-        <section className="py-16 bg-stone-800 text-white">
+        <section className="bg-gradient-to-r from-stone-800 to-stone-700 py-16 text-white">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl md:text-3xl font-serif mb-4">
-              ¿Listo para Crear Algo Único?
-            </h2>
-            <p className="text-lg max-w-2xl mx-auto mb-8 text-stone-300">
-              Ya sea que tengas una idea específica o necesites inspiración,
-              estamos aquí para ayudarte a crear la pieza perfecta.
-            </p>
-            <Button className="bg-white text-stone-800 hover:bg-stone-100 text-lg px-8 py-6">
-              Agendar Consulta Gratuita
-            </Button>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-3xl md:text-4xl font-serif mb-6">
+                ¿Listo para Crear Algo Único?
+              </h2>
+              <p className="text-lg max-w-2xl mx-auto mb-8 text-stone-300 leading-relaxed">
+                Ya sea que tengas una idea específica o necesites inspiración,
+                estamos aquí para ayudarte a crear la pieza perfecta.
+              </p>
+            </motion.div>
           </div>
         </section>
       </main>
