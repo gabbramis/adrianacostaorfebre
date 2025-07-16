@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Gem } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function JewelryHero() {
   const router = useRouter();
@@ -12,16 +13,22 @@ export default function JewelryHero() {
       <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent z-[1]" />
 
       {/* Imagen para Dispositivos Móviles */}
-      <img
+      <Image
         src="/hero1.jpg"
         alt="Joyería artesanal de Adriana Acosta"
+        width={1920}
+        height={1080}
+        priority
         className="absolute inset-0 w-full h-full object-cover object-center block md:hidden"
       />
 
       {/* Imagen para Escritorio */}
-      <img
+      <Image
         src="/hero6.png"
         alt="Joyería artesanal de Adriana Acosta"
+        priority
+        width={1920}
+        height={1080}
         className="absolute inset-0 w-full h-full object-cover object-center hidden md:block"
       />
 
