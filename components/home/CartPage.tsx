@@ -31,6 +31,7 @@ import {
 import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
 import OrderConfirmation from "./OrderConfirmation";
+import { supabase } from "@/lib/supabaseClient";
 
 interface CustomerInfo {
   firstName: string;
@@ -106,6 +107,15 @@ export default function CartPage() {
 
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState<Partial<CustomerInfo>>({});
+  // Estados para códigos de descuento
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{
+    discount_code: string;
+    value: number;
+    discount_code_type: "percentage" | "flat_rate";
+  } | null>(null);
+  const [promoError, setPromoError] = useState("");
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
   useEffect(() => {
     if (
@@ -138,13 +148,87 @@ export default function CartPage() {
     return deliveryMethod === "pickup" ? 0 : getShipping();
   };
 
-  const calculateTotal = () => {
-    return getTotalPrice() + calculateShipping();
+  // Funciones para códigos de descuento
+  const calculateDiscount = () => {
+    if (!appliedPromo) return 0;
+
+    const discount = Number(appliedPromo.value);
+    const subtotal = Number(getTotalPrice());
+
+    if (isNaN(discount) || isNaN(subtotal)) return 0;
+    console.log(appliedPromo);
+    if (appliedPromo.discount_code_type == "percentage") {
+      return (subtotal * discount) / 100;
+    } else {
+      return discount;
+    }
+  };
+
+  const calculateFinalTotal = () => {
+    const subtotal = Number(getTotalPrice());
+    const shipping = currentStep >= 2 ? Number(calculateShipping()) : 0;
+    const discount = Number(calculateDiscount());
+
+    if ([subtotal, shipping, discount].some(isNaN)) {
+      console.warn("NaN detected", { subtotal, shipping, discount });
+      return 0;
+    }
+
+    return subtotal + shipping - discount;
+  };
+
+  const applyPromoCode = async () => {
+    if (!promoCode.trim()) return;
+
+    setIsApplyingPromo(true);
+    setPromoError("");
+
+    try {
+      const { data, error } = await supabase
+        .from("discount_codes")
+        .select("*")
+        .eq("discount_code", promoCode.toUpperCase())
+        .eq("active", true)
+        .single();
+
+      if (error || !data) {
+        setPromoError("Código no válido o expirado");
+        return;
+      }
+      console.log(data, "caca");
+
+      // Verificar si el código ya expiró
+      if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+        setPromoError("Este código ha expirado");
+        return;
+      }
+
+      setAppliedPromo({
+        discount_code: promoCode,
+        value: Number(data.value),
+        discount_code_type:
+          data.type === "percentage" ? "percentage" : "flat_rate",
+      });
+
+      setPromoCode("");
+      setPromoError("");
+    } catch (_error) {
+      console.error("Error al aplicar el código:", _error);
+      setPromoError("Error al aplicar el código");
+    } finally {
+      setIsApplyingPromo(false);
+    }
+  };
+
+  const removePromoCode = () => {
+    setAppliedPromo(null);
+    setPromoError("");
+    setPromoCode("");
   };
 
   const handleCheckout = async () => {
     setIsProcessing(true);
-    const currentCalculatedTotal = calculateTotal();
+    const currentCalculatedTotal = calculateFinalTotal();
 
     const orderData: OrderData = {
       items: state.items.map((item) => ({
@@ -156,12 +240,13 @@ export default function CartPage() {
       totalPrice: currentCalculatedTotal,
       customerInfo: customerInfo,
       deliveryMethod: deliveryMethod,
-      promoApplied: false,
+      promoApplied: appliedPromo !== null,
+      promoCode: appliedPromo?.discount_code || "",
+      promoDiscount: calculateDiscount(),
       shippingCost: calculateShipping(),
       notes: customerInfo.notes,
       paymentMethod: paymentMethod,
     };
-
     try {
       if (paymentMethod === "mercadopago") {
         const formData = new FormData();
@@ -870,10 +955,19 @@ export default function CartPage() {
                                 ? "Mercado Pago"
                                 : "Transferencia bancaria"}
                             </p>
+                            {appliedPromo && (
+                              <p>
+                                <strong>Código aplicado:</strong>{" "}
+                                <span className="text-green-600">
+                                  {appliedPromo.discount_code}
+                                </span>{" "}
+                                (-{formatPrice(calculateDiscount())})
+                              </p>
+                            )}
                             <p>
                               <strong>Total:</strong>{" "}
                               <span className="text-lg font-bold">
-                                {formatPrice(calculateTotal())}
+                                {formatPrice(calculateFinalTotal())}
                               </span>
                             </p>
                           </div>
@@ -999,37 +1093,110 @@ export default function CartPage() {
                       </div>
                     ))}
                   </div>
+                  {/* Sección de código de descuento */}
+                  {!appliedPromo ? (
+                    <div className="space-y-3">
+                      <div className="flex space-x-2">
+                        <Input
+                          placeholder="Código de descuento"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value)}
+                          className="flex-1"
+                          disabled={isApplyingPromo}
+                          onKeyPress={(e) =>
+                            e.key === "Enter" && applyPromoCode()
+                          }
+                        />
+                        <Button
+                          onClick={applyPromoCode}
+                          disabled={!promoCode.trim() || isApplyingPromo}
+                          variant="outline"
+                          className="px-4"
+                        >
+                          {isApplyingPromo ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-stone-600"></div>
+                          ) : (
+                            "Aplicar"
+                          )}
+                        </Button>
+                      </div>
+                      {promoError && (
+                        <p className="text-red-500 text-sm flex items-center">
+                          <AlertCircle size={14} className="mr-1" />
+                          {promoError}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <CheckCircle2
+                            className="text-green-600 mr-2"
+                            size={16}
+                          />
+                          <span className="text-sm font-medium text-green-800">
+                            Código aplicado: {appliedPromo.discount_code}
+                          </span>
+                        </div>
+                        <Button
+                          onClick={removePromoCode}
+                          variant="ghost"
+                          size="sm"
+                          className="text-green-600 hover:text-green-700 p-1"
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
                   <Separator />
 
-                  {/* Cálculos */}
+                  {/* Cálculos actualizados */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Subtotal</span>
                       <span>{formatPrice(getTotalPrice())}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Envío</span>
-                      <span
-                        className={
-                          calculateShipping() === 0
-                            ? "text-green-600 font-medium"
-                            : ""
-                        }
-                      >
-                        {calculateShipping() === 0
-                          ? "Gratis"
-                          : formatPrice(calculateShipping())}
-                      </span>
-                    </div>
+                    {currentStep >= 2 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Envío</span>
+                        <span
+                          className={
+                            calculateShipping() === 0
+                              ? "text-green-600 font-medium"
+                              : ""
+                          }
+                        >
+                          {calculateShipping() === 0
+                            ? "Gratis"
+                            : formatPrice(calculateShipping())}
+                        </span>
+                      </div>
+                    )}
+                    {appliedPromo && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>
+                          Descuento (
+                          {appliedPromo.discount_code_type === "percentage"
+                            ? `${appliedPromo.value}%`
+                            : "Fijo"}
+                          )
+                        </span>
+                        <span>-{formatPrice(calculateDiscount())}</span>
+                      </div>
+                    )}
                   </div>
 
                   <Separator />
 
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>{formatPrice(calculateTotal())}</span>
+                    <span>{formatPrice(calculateFinalTotal())}</span>
                   </div>
+
+                  <Separator />
                 </CardContent>
               </Card>
             </div>

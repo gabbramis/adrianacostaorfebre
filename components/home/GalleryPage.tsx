@@ -34,7 +34,6 @@ import {
   SlidersHorizontal,
   Star,
   X,
-  Eye,
   Sparkles,
   Package,
   DollarSign,

@@ -40,11 +40,9 @@ export interface OrderData {
   // For 'transfer' orders, this might be null initially or set to a custom ID.
   paymentIntentId?: string | null;
   uniqueReference?: string;
+  promoCode?: string;
+  promoDiscount?: number;
 }
-
-// ---
-// Server Action to create an order
-// ---
 
 export async function createOrder(orderData: OrderData) {
   try {
