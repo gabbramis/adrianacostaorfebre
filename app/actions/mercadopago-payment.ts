@@ -48,6 +48,29 @@ export async function mercadopagoPayment(orderData: OrderData) {
         unit_price: Number(orderData.shippingCost), // The actual shipping cost
         currency_id: "UYU", // Same currency as other items
       });
+      if (orderData.promoDiscount) {
+        const { type, value } = orderData.promoDiscount;
+
+        const currentTotal = itemsForMercadoPago.reduce(
+          (total, item) => total + item.unit_price * item.quantity,
+          0
+        );
+
+        let discountAmount = 0;
+        if (type === "percentage") {
+          discountAmount = (currentTotal * value) / 100;
+        } else if (type === "flat_rate") {
+          discountAmount = value;
+        }
+
+        itemsForMercadoPago.push({
+          id: "DISCOUNT",
+          title: `Descuento: ${orderData.promoDiscount.discount_code}`,
+          quantity: 1,
+          unit_price: -discountAmount,
+          currency_id: "UYU",
+        });
+      }
     }
     if (itemsForMercadoPago.length === 0) {
       return {

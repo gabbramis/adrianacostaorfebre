@@ -200,7 +200,6 @@ export default function DiscountsCodePage() {
           Nuevo Código
         </Button>
       </div>
-
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -356,13 +355,17 @@ export default function DiscountsCodePage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DiscountCodeModal
           code={editingCode}
           isCreating={isCreating}
-          onSave={isCreating ? handleCreateCode : handleUpdateCode}
+          onSave={(data) => {
+            if (isCreating) {
+              handleCreateCode(data);
+            } else {
+              handleUpdateCode(data);
+            }
+          }}
           onClose={closeModal}
         />
       </Dialog>
@@ -370,7 +373,6 @@ export default function DiscountsCodePage() {
   );
 }
 
-// Modal Component
 function DiscountCodeModal({
   code,
   isCreating,
@@ -397,6 +399,21 @@ function DiscountCodeModal({
         .split("T")[0],
   });
 
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      type: "percentage",
+      value: 0,
+      discount_code: "",
+      description: "",
+      active: true,
+      start_date: new Date().toISOString().split("T")[0],
+      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.type === "percentage" && formData.value > 100) {
@@ -404,6 +421,8 @@ function DiscountCodeModal({
       return;
     }
     onSave(formData);
+    if (isCreating) resetForm();
+    onClose();
   };
 
   return (
@@ -415,7 +434,6 @@ function DiscountCodeModal({
             : "Editar código promocional"}
         </DialogTitle>
       </DialogHeader>
-
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -453,7 +471,12 @@ function DiscountCodeModal({
             <Select
               value={formData.type}
               onValueChange={
-                (value) => setFormData({ ...formData, type: value, value: 0 }) // Reset value when type changes
+                (value) =>
+                  setFormData({
+                    ...formData,
+                    type: value as "percentage" | "flat_rate",
+                    value: 0,
+                  }) // Reset value when type changes
               }
             >
               <SelectTrigger>

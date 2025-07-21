@@ -41,7 +41,11 @@ export interface OrderData {
   paymentIntentId?: string | null;
   uniqueReference?: string;
   promoCode?: string;
-  promoDiscount?: number;
+  promoDiscount?: {
+    value: number;
+    type: "percentage" | "flat_rate";
+    discount_code: string;
+  };
 }
 
 export async function createOrder(orderData: OrderData) {

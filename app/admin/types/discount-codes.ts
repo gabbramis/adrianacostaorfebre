@@ -1,7 +1,7 @@
 export interface DiscountCode {
   id: string;
   name: string;
-  type: string;
+  type: "percentage" | "flat_rate";
   value: number;
   discount_code: string;
   description: string;

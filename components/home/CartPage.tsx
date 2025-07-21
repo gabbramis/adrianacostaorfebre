@@ -242,7 +242,13 @@ export default function CartPage() {
       deliveryMethod: deliveryMethod,
       promoApplied: appliedPromo !== null,
       promoCode: appliedPromo?.discount_code || "",
-      promoDiscount: calculateDiscount(),
+      promoDiscount: appliedPromo
+        ? {
+            value: appliedPromo.value,
+            type: appliedPromo.discount_code_type,
+            discount_code: appliedPromo.discount_code,
+          }
+        : undefined,
       shippingCost: calculateShipping(),
       notes: customerInfo.notes,
       paymentMethod: paymentMethod,
