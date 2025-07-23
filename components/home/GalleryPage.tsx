@@ -888,18 +888,6 @@ export default function GalleryPage() {
                               <p className="text-xl font-serif text-stone-800">
                                 {formatPrice(product.price)}
                               </p>
-                              <Button
-                                size="sm"
-                                className={`bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white px-4 py-2 shadow-md hover:shadow-lg transition-all duration-300 ${
-                                  hoveredProduct === product.id
-                                    ? "opacity-100 translate-y-0"
-                                    : "opacity-0 translate-y-2"
-                                }`}
-                                onClick={() => handleAddToCart(product)}
-                              >
-                                <ShoppingCart size={14} className="mr-2" />
-                                Añadir
-                              </Button>
                             </div>
                           </CardContent>
                         </Card>
