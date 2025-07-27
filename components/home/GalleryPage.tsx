@@ -595,7 +595,7 @@ export default function GalleryPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                   >
                     {filteredProducts.map((product, index) => (
                       <motion.div
@@ -607,7 +607,7 @@ export default function GalleryPage() {
                         onMouseEnter={() => setHoveredProduct(product.id)}
                         onMouseLeave={() => setHoveredProduct(null)}
                       >
-                        <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white border-0 shadow-lg h-full flex flex-col">
+                        <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white border-0 shadow-lg h-full flex flex-col gap-0 !p-0">
                           <Dialog>
                             <DialogTrigger asChild>
                               <div
@@ -831,12 +831,12 @@ export default function GalleryPage() {
 
                           <CardContent className="p-4 flex-1 flex flex-col">
                             <div className="flex-1">
-                              <h3 className="font-semibold text-base text-stone-800 mb-2 line-clamp-2 min-h-[3rem]">
+                              <h3 className="font-semibold text-base text-stone-800 mb-2 line-clamp-2">
                                 {product.name}
                               </h3>
 
                               {product.popularity && (
-                                <div className="flex items-center space-x-2 mb-3">
+                                <div className="flex items-center space-x-2">
                                   <div className="flex items-center">
                                     {[...Array(5)].map((_, i) => (
                                       <Star
