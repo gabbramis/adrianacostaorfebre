@@ -189,8 +189,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getShipping = () => {
-    const total = getTotalPrice();
-    return total >= 2000 ? 0 : 270; // Envío gratis en compras superiores a $2000
+  
+    return  270; 
   };
 
   const getFinalTotal = () => {
