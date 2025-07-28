@@ -214,54 +214,55 @@ export default function SiteHeader() {
 
             {/* Mobile Hamburger Menu (Sheet) */}
             <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Abrir menú de navegación"
-                >
-                  <Menu size={20} aria-hidden="true" />
-                  <span className="sr-only">Abrir menú de navegación</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="w-[300px] sm:w-[400px] flex flex-col"
-              >
-                <SheetHeader className="flex flex-row items-center justify-between py-4 border-b px-6">
-                  <SheetTitle className="text-xl font-serif text-stone-800">
-                    Menú
-                  </SheetTitle>
-                </SheetHeader>
-                <nav
-                  className="flex flex-col flex-grow py-6 overflow-y-auto px-6"
-                  aria-label="Navegación del menú móvil"
-                >
-                  {NAV_LINKS.map((link) => (
-                    <SheetClose asChild key={link.name}>
-                      <Link
-                        href={link.href}
-                        className={`
-              relative flex items-center py-2.5 px-4 rounded-md text-base font-medium
-              transition-colors duration-200
+  <SheetTrigger asChild>
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="Abrir menú de navegación"
+    >
+      <Menu size={20} aria-hidden="true" />
+      <span className="sr-only">Abrir menú de navegación</span>
+    </Button>
+  </SheetTrigger>
+  <SheetContent
+    side="right"
+    className="w-[300px] sm:w-[400px] flex flex-col bg-white dark:bg-zinc-900 text-stone-800 dark:text-white"
+  >
+    <SheetHeader className="flex flex-row items-center justify-between py-4 border-b border-stone-200 dark:border-zinc-700 px-6">
+      <SheetTitle className="text-xl font-serif text-stone-800 dark:text-white">
+        Menú
+      </SheetTitle>
+    </SheetHeader>
+
+    <nav
+      className="flex flex-col flex-grow py-6 overflow-y-auto px-6"
+      aria-label="Navegación del menú móvil"
+    >
+      {NAV_LINKS.map((link) => (
+        <SheetClose asChild key={link.name}>
+          <Link
+            href={link.href}
+            className={`relative flex items-center py-2.5 px-4 rounded-md text-base font-medium transition-colors duration-200
               ${
                 pathname === link.href
-                  ? "bg-stone-100 text-stone-800 font-semibold" // Active link style
-                  : "text-stone-700 hover:bg-stone-50 hover:text-stone-900" // Inactive link hover
+                  ? "bg-stone-100 dark:bg-zinc-800 text-stone-800 dark:text-white font-semibold"
+                  : "text-stone-700 dark:text-zinc-300 hover:bg-stone-50 dark:hover:bg-zinc-700 hover:text-stone-900 dark:hover:text-white"
               }
             `}
-                      >
-                        {link.name}
-                        {pathname === link.href && ( // Optional: Add a subtle indicator for active link
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 bg-stone-800 rounded-full" />
-                        )}
-                      </Link>
-                    </SheetClose>
-                  ))}
-                </nav>
-                <div className="py-6 border-t px-6"></div>
-              </SheetContent>
-            </Sheet>
+          >
+            {link.name}
+            {pathname === link.href && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 bg-stone-800 dark:bg-white rounded-full" />
+            )}
+          </Link>
+        </SheetClose>
+      ))}
+    </nav>
+
+    <div className="py-6 border-t border-stone-200 dark:border-zinc-700 px-6"></div>
+  </SheetContent>
+</Sheet>
+
           </div>
         </div>
 
