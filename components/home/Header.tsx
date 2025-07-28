@@ -61,26 +61,43 @@ export default function SiteHeader() {
 
   return (
     <header
-      className={`sticky top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white shadow-md py-2" : "bg-stone-100 py-2"
-      }`}
-    >
+  className={`sticky top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    isScrolled
+      ? "bg-white dark:bg-black text-stone-800 dark:text-white shadow-md py-2"
+      : "bg-stone-100 dark:bg-zinc-900 text-stone-800 dark:text-white py-2"
+  }`}
+>
+
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link
-            href="/"
-            className="relative text-xl md:text-2xl font-serif text-stone-800 h-12 w-48 flex-shrink-0" // Added flex-shrink-0
-          >
-            <Image
-              src="/white-header.png"
-              alt="Logo de Adrianacostaorfebre"
-              fill
-              style={{ objectFit: "contain" }}
-              priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Added responsive sizes
-            />
-          </Link>
+  href="/"
+  className="relative text-xl md:text-2xl font-serif text-stone-800 h-12 w-48 flex-shrink-0"
+>
+  {/* Logo modo claro */}
+  <Image
+    src="/white-header.png"
+    alt="Logo modo claro"
+    fill
+    className="block dark:hidden"
+    style={{ objectFit: "contain" }}
+    priority
+    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  />
+
+  {/* Logo modo oscuro */}
+  <Image
+    src="/dark-header.png" // ⚠️ Asegurate de tener esta imagen
+    alt="Logo modo oscuro"
+    fill
+    className="hidden dark:block"
+    style={{ objectFit: "contain" }}
+    priority
+    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  />
+</Link>
+
 
           {/* Desktop Navigation */}
           <nav
@@ -91,9 +108,12 @@ export default function SiteHeader() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-stone-600 ${
-                  pathname === link.href ? "text-stone-800" : "text-stone-600"
-                }`}
+                className={`text-sm font-medium transition-colors hover:text-stone-600 dark:hover:text-stone-300 ${
+  pathname === link.href
+    ? "text-stone-800 dark:text-white"
+    : "text-stone-600 dark:text-stone-300"
+}`}
+
               >
                 {link.name}
               </Link>
