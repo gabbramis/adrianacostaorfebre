@@ -752,10 +752,9 @@ export default function GalleryPage() {
                                     </p>
                                   </div>
 
-                                  {/* FIXED: Mobile-friendly Add to Cart button */}
-                                  <div className="flex flex-col sm:flex-row gap-4">
+                                  <div className="space-y-4">
                                     <Button
-                                      className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white h-12 shadow-lg hover:shadow-xl transition-all touch-manipulation"
+                                      className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white h-12 shadow-lg hover:shadow-xl transition-all font-medium"
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
@@ -765,10 +764,12 @@ export default function GalleryPage() {
                                       }}
                                     >
                                       <ShoppingCart
-                                        className="mr-2"
+                                        className="mr-2 flex-shrink-0"
                                         size={16}
                                       />
-                                      Añadir al Carrito
+                                      <span className="flex-1">
+                                        Añadir al Carrito
+                                      </span>
                                     </Button>
                                   </div>
                                 </div>
