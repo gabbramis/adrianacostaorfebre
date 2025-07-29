@@ -80,9 +80,14 @@ export default function CartDrawer() {
             </p>
             <Button
               asChild
-              className="bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
+              className="bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base touch-manipulation min-h-[48px] flex-shrink-0"
+              style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              <Link href="/galeria" onClick={closeCart}>
+              <Link
+                href="/galeria"
+                onClick={closeCart}
+                className="flex items-center justify-center w-full h-full"
+              >
                 Explorar Productos
               </Link>
             </Button>
