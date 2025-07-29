@@ -78,19 +78,11 @@ export default function CartDrawer() {
               Descubre nuestra hermosa colección de joyería artesanal y
               encuentra la pieza perfecta para ti.
             </p>
-            <Button
-              asChild
-              className="bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base touch-manipulation min-h-[48px] flex-shrink-0"
-              style={{ WebkitTapHighlightColor: "transparent" }}
-            >
-              <Link
-                href="/galeria"
-                onClick={closeCart}
-                className="flex items-center justify-center w-full h-full"
-              >
+            <Link href="/galeria" onClick={closeCart}>
+              <Button className="bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base">
                 Explorar Productos
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         ) : (
           <>
@@ -211,11 +203,8 @@ export default function CartDrawer() {
               </div>
 
               {/* Botón de acción principal */}
-              <Button
-                asChild
-                className="w-full h-11 sm:h-12 bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group text-sm sm:text-base"
-              >
-                <Link href="/carrito" onClick={closeCart}>
+              <Link href="/carrito" onClick={closeCart}>
+                <Button className="w-full h-11 sm:h-12 bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group text-sm sm:text-base">
                   <span className="flex items-center justify-center">
                     Ver Carrito Completo
                     <ArrowRight
@@ -223,8 +212,8 @@ export default function CartDrawer() {
                       size={18}
                     />
                   </span>
-                </Link>
-              </Button>
+                </Button>
+              </Link>
 
               {/* Botón secundario */}
               <Button

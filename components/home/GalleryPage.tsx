@@ -633,367 +633,204 @@ export default function GalleryPage() {
                                       {product.category}
                                     </Badge>
                                   </div>
+
+                                  {/* Overlay con acciones - Solo desktop */}
+                                  <div
+                                    className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300 hidden sm:block ${
+                                      hoveredProduct === product.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    }`}
+                                  >
+                                    <div className="absolute bottom-4 left-4 right-4">
+                                      <Button
+                                        size="sm"
+                                        className="w-full bg-white/95 hover:bg-white text-stone-800 shadow-lg hover:shadow-xl transition-all font-medium"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddToCart(product);
+                                        }}
+                                      >
+                                        <ShoppingCart
+                                          size={14}
+                                          className="mr-2"
+                                        />
+                                        Añadir al Carrito
+                                      </Button>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </DialogTrigger>
-                            {/* Overlay with acciones - Desktop only, hidden on mobile */}
-                            <div
-                              className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300 hidden lg:block ${
-                                hoveredProduct === product.id
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              }`}
-                            >
-                              <div className="absolute bottom-4 left-4 right-4">
-                                <Button
-                                  size="sm"
-                                  className="w-full bg-white/95 hover:bg-white text-stone-800 shadow-lg hover:shadow-xl transition-all font-medium touch-manipulation min-h-[44px] flex-shrink-0"
-                                  style={{
-                                    WebkitTapHighlightColor: "transparent",
-                                  }}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleAddToCart(product);
-                                  }}
-                                >
-                                  <ShoppingCart
-                                    size={14}
-                                    className="mr-2 flex-shrink-0"
-                                  />
-                                  <span className="flex-shrink-0">
-                                    Añadir al Carrito
-                                  </span>
-                                </Button>
-                              </div>
-                            </div>
 
-                            {/* Simple hover overlay for mobile - no button */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 lg:hidden" />
+                            {/* Modal mejorado */}
+                            <DialogContent className="sm:max-w-6xl bg-white max-h-[90vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle className="text-3xl font-serif text-stone-800">
+                                  {selectedProduct?.name}
+                                </DialogTitle>
+                              </DialogHeader>
 
-                            <motion.div
-                              key={product.id}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.05 }}
-                              className="group"
-                              onMouseEnter={() => setHoveredProduct(product.id)}
-                              onMouseLeave={() => setHoveredProduct(null)}
-                            >
-                              <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white border-0 shadow-lg h-full flex flex-col gap-0 !p-0">
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <div
-                                      className="cursor-pointer relative"
-                                      onClick={() => {
-                                        setSelectedProduct(product);
-                                        getSimilarProducts(product);
-                                      }}
-                                    >
-                                      <div className="relative aspect-square overflow-hidden bg-stone-50">
-                                        <img
-                                          src={
-                                            getPrimaryImageSrc(product) ||
-                                            "/placeholder.svg"
-                                          }
-                                          alt={product.name}
-                                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                        />
-
-                                        {/* Badge de categoría */}
-                                        <div className="absolute top-3 left-3">
-                                          <Badge className="bg-white/90 text-stone-800 text-xs font-medium">
-                                            {product.category}
-                                          </Badge>
-                                        </div>
-
-                                        {/* Desktop overlay with button - hidden on mobile (lg:block) */}
-                                        <div
-                                          className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300 hidden lg:block ${
-                                            hoveredProduct === product.id
-                                              ? "opacity-100"
-                                              : "opacity-0"
-                                          }`}
-                                        >
-                                          <div className="absolute bottom-4 left-4 right-4">
-                                            <Button
-                                              size="sm"
-                                              className="w-full bg-white/95 hover:bg-white text-stone-800 shadow-lg hover:shadow-xl transition-all font-medium touch-manipulation min-h-[44px] flex-shrink-0"
-                                              style={{
-                                                WebkitTapHighlightColor:
-                                                  "transparent",
-                                              }}
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                handleAddToCart(product);
-                                              }}
-                                            >
-                                              <ShoppingCart
-                                                size={14}
-                                                className="mr-2 flex-shrink-0"
-                                              />
-                                              <span className="flex-shrink-0">
-                                                Añadir al Carrito
-                                              </span>
-                                            </Button>
-                                          </div>
-                                        </div>
-
-                                        {/* Mobile simple overlay - no button (block on mobile, hidden on desktop) */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 lg:hidden" />
-                                      </div>
-                                    </div>
-                                  </DialogTrigger>
-
-                                  {/* Modal content remains exactly the same */}
-                                  <DialogContent className="sm:max-w-6xl bg-white max-h-[90vh] overflow-y-auto">
-                                    <DialogHeader>
-                                      <DialogTitle className="text-3xl font-serif text-stone-800">
-                                        {selectedProduct?.name}
-                                      </DialogTitle>
-                                    </DialogHeader>
-
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
-                                      {/* Images section */}
-                                      <div className="relative">
-                                        {selectedProduct?.image &&
-                                        selectedProduct.image.length > 0 ? (
-                                          <Carousel className="w-full">
-                                            <CarouselContent>
-                                              {selectedProduct.image.map(
-                                                (url, index) => (
-                                                  <CarouselItem key={index}>
-                                                    <div className="relative w-full h-96 bg-stone-50 overflow-hidden rounded-xl">
-                                                      <img
-                                                        src={
-                                                          url ||
-                                                          "/placeholder.svg"
-                                                        }
-                                                        alt={`${
-                                                          selectedProduct.name
-                                                        } - Imagen ${index + 1}`}
-                                                        className="w-full h-full object-cover"
-                                                      />
-                                                    </div>
-                                                  </CarouselItem>
-                                                )
-                                              )}
-                                            </CarouselContent>
-                                            {selectedProduct.image.length >
-                                              1 && (
-                                              <>
-                                                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border-stone-200 shadow-lg" />
-                                                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border-stone-200 shadow-lg" />
-                                              </>
-                                            )}
-                                          </Carousel>
-                                        ) : (
-                                          <div className="w-full h-96 bg-stone-50 flex items-center justify-center rounded-xl">
-                                            <img
-                                              src="/placeholder.svg?height=400&width=400"
-                                              alt="Imagen no disponible"
-                                              className="w-full h-full object-cover rounded-xl"
-                                            />
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      {/* Product information */}
-                                      <div className="flex flex-col justify-start space-y-6">
-                                        <DialogDescription className="text-base text-stone-600 leading-relaxed">
-                                          {selectedProduct?.description}
-                                        </DialogDescription>
-
-                                        {selectedProduct?.materials &&
-                                          selectedProduct.materials.length >
-                                            0 && (
-                                            <div>
-                                              <h4 className="text-sm font-semibold text-stone-500 mb-3 uppercase tracking-wide">
-                                                Materiales
-                                              </h4>
-                                              <div className="flex flex-wrap gap-2">
-                                                {selectedProduct.materials.map(
-                                                  (material, idx) => (
-                                                    <Badge
-                                                      key={idx}
-                                                      variant="outline"
-                                                      className="bg-stone-50 border-stone-300"
-                                                    >
-                                                      {material}
-                                                    </Badge>
-                                                  )
-                                                )}
-                                              </div>
-                                            </div>
-                                          )}
-
-                                        <div>
-                                          <h4 className="text-sm font-semibold text-stone-500 mb-2 uppercase tracking-wide">
-                                            Precio
-                                          </h4>
-                                          <p className="text-4xl font-serif text-stone-800">
-                                            {selectedProduct &&
-                                              formatPrice(
-                                                selectedProduct.price
-                                              )}
-                                          </p>
-                                        </div>
-
-                                        {/* Modal button with mobile fixes */}
-                                        <div className="space-y-4">
-                                          <Button
-                                            className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white h-12 shadow-lg hover:shadow-xl transition-all font-medium touch-manipulation min-h-[48px] flex-shrink-0"
-                                            style={{
-                                              WebkitTapHighlightColor:
-                                                "transparent",
-                                            }}
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              if (selectedProduct) {
-                                                handleAddToCart(
-                                                  selectedProduct
-                                                );
-                                              }
-                                            }}
-                                          >
-                                            <ShoppingCart
-                                              className="mr-2 flex-shrink-0"
-                                              size={16}
-                                            />
-                                            <span className="flex-1">
-                                              Añadir al Carrito
-                                            </span>
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Similar products and navigation remain the same */}
-                                    {similarProducts.length > 0 && (
-                                      <div className="mt-8 border-t pt-8">
-                                        <h3 className="text-xl font-serif text-stone-800 mb-4">
-                                          Productos Similares
-                                        </h3>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                          {similarProducts.map((similar) => (
-                                            <div
-                                              key={similar.id}
-                                              className="cursor-pointer group"
-                                              onClick={() => {
-                                                setSelectedProduct(similar);
-                                                getSimilarProducts(similar);
-                                              }}
-                                            >
-                                              <div className="relative aspect-square bg-stone-50 rounded-lg overflow-hidden mb-2">
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+                                {/* SECCIÓN DE IMÁGENES */}
+                                <div className="relative">
+                                  {selectedProduct?.image &&
+                                  selectedProduct.image.length > 0 ? (
+                                    <Carousel className="w-full">
+                                      <CarouselContent>
+                                        {selectedProduct.image.map(
+                                          (url, index) => (
+                                            <CarouselItem key={index}>
+                                              <div className="relative w-full h-96 bg-stone-50 overflow-hidden rounded-xl">
                                                 <img
                                                   src={
-                                                    getPrimaryImageSrc(
-                                                      similar
-                                                    ) || "/placeholder.svg"
+                                                    url || "/placeholder.svg"
                                                   }
-                                                  alt={similar.name}
-                                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                  alt={`${
+                                                    selectedProduct.name
+                                                  } - Imagen ${index + 1}`}
+                                                  className="w-full h-full object-cover"
                                                 />
                                               </div>
-                                              <h4 className="text-sm font-medium text-stone-800 line-clamp-2">
-                                                {similar.name}
-                                              </h4>
-                                              <p className="text-sm font-serif text-stone-600">
-                                                {formatPrice(similar.price)}
-                                              </p>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    <div className="flex justify-between mt-8">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => navigateProduct("prev")}
-                                        className="hover:bg-stone-50 rounded-full"
-                                      >
-                                        <ChevronLeft size={24} />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => navigateProduct("next")}
-                                        className="hover:bg-stone-50 rounded-full"
-                                      >
-                                        <ChevronRight size={24} />
-                                      </Button>
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
-
-                                <CardContent className="p-4 flex-1 flex flex-col">
-                                  <div className="flex-1">
-                                    <h3 className="font-semibold text-base text-stone-800 mb-2 line-clamp-2">
-                                      {product.name}
-                                    </h3>
-
-                                    {product.popularity && (
-                                      <div className="flex items-center space-x-2">
-                                        <div className="flex items-center">
-                                          {[...Array(5)].map((_, i) => (
-                                            <Star
-                                              key={i}
-                                              size={14}
-                                              className={
-                                                i <
-                                                Math.floor(product.popularity!)
-                                                  ? "text-yellow-400 fill-current"
-                                                  : "text-stone-200"
-                                              }
-                                            />
-                                          ))}
-                                        </div>
-                                        <span className="text-xs text-stone-500">
-                                          ({product.popularity})
-                                        </span>
-                                      </div>
-                                    )}
-
-                                    {product.materials &&
-                                      product.materials.length > 0 && (
-                                        <div className="mb-3">
-                                          <div className="flex flex-wrap gap-1">
-                                            {product.materials
-                                              .slice(0, 2)
-                                              .map((material, idx) => (
-                                                <Badge
-                                                  key={idx}
-                                                  variant="outline"
-                                                  className="text-xs bg-stone-50 border-stone-200"
-                                                >
-                                                  {material}
-                                                </Badge>
-                                              ))}
-                                            {product.materials.length > 2 && (
-                                              <Badge
-                                                variant="outline"
-                                                className="text-xs bg-stone-50 border-stone-200"
-                                              >
-                                                +{product.materials.length - 2}
-                                              </Badge>
-                                            )}
-                                          </div>
-                                        </div>
+                                            </CarouselItem>
+                                          )
+                                        )}
+                                      </CarouselContent>
+                                      {selectedProduct.image.length > 1 && (
+                                        <>
+                                          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border-stone-200 shadow-lg" />
+                                          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border-stone-200 shadow-lg" />
+                                        </>
                                       )}
-                                  </div>
+                                    </Carousel>
+                                  ) : (
+                                    <div className="w-full h-96 bg-stone-50 flex items-center justify-center rounded-xl">
+                                      <img
+                                        src="/placeholder.svg?height=400&width=400"
+                                        alt="Imagen no disponible"
+                                        className="w-full h-full object-cover rounded-xl"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
 
-                                  <div className="flex items-center justify-between mt-4">
-                                    <p className="text-xl font-serif text-stone-800">
-                                      {formatPrice(product.price)}
+                                {/* SECCIÓN DE INFORMACIÓN DEL PRODUCTO */}
+                                <div className="flex flex-col justify-start space-y-6">
+                                  <DialogDescription className="text-base text-stone-600 leading-relaxed">
+                                    {selectedProduct?.description}
+                                  </DialogDescription>
+
+                                  {selectedProduct?.materials &&
+                                    selectedProduct.materials.length > 0 && (
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-stone-500 mb-3 uppercase tracking-wide">
+                                          Materiales
+                                        </h4>
+                                        <div className="flex flex-wrap gap-2">
+                                          {selectedProduct.materials.map(
+                                            (material, idx) => (
+                                              <Badge
+                                                key={idx}
+                                                variant="outline"
+                                                className="bg-stone-50 border-stone-300"
+                                              >
+                                                {material}
+                                              </Badge>
+                                            )
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-stone-500 mb-2 uppercase tracking-wide">
+                                      Precio
+                                    </h4>
+                                    <p className="text-4xl font-serif text-stone-800">
+                                      {selectedProduct &&
+                                        formatPrice(selectedProduct.price)}
                                     </p>
                                   </div>
-                                </CardContent>
-                              </Card>
-                            </motion.div>
+
+                                  {/* FIXED: Mobile-friendly Add to Cart button */}
+                                  <div className="flex flex-col sm:flex-row gap-4">
+                                    <Button
+                                      className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white h-12 shadow-lg hover:shadow-xl transition-all touch-manipulation"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (selectedProduct) {
+                                          handleAddToCart(selectedProduct);
+                                        }
+                                      }}
+                                    >
+                                      <ShoppingCart
+                                        className="mr-2"
+                                        size={16}
+                                      />
+                                      Añadir al Carrito
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Productos similares */}
+                              {similarProducts.length > 0 && (
+                                <div className="mt-8 border-t pt-8">
+                                  <h3 className="text-xl font-serif text-stone-800 mb-4">
+                                    Productos Similares
+                                  </h3>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {similarProducts.map((similar) => (
+                                      <div
+                                        key={similar.id}
+                                        className="cursor-pointer group"
+                                        onClick={() => {
+                                          setSelectedProduct(similar);
+                                          getSimilarProducts(similar);
+                                        }}
+                                      >
+                                        <div className="relative aspect-square bg-stone-50 rounded-lg overflow-hidden mb-2">
+                                          <img
+                                            src={
+                                              getPrimaryImageSrc(similar) ||
+                                              "/placeholder.svg"
+                                            }
+                                            alt={similar.name}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                          />
+                                        </div>
+                                        <h4 className="text-sm font-medium text-stone-800 line-clamp-2">
+                                          {similar.name}
+                                        </h4>
+                                        <p className="text-sm font-serif text-stone-600">
+                                          {formatPrice(similar.price)}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="flex justify-between mt-8">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => navigateProduct("prev")}
+                                  className="hover:bg-stone-50 rounded-full"
+                                >
+                                  <ChevronLeft size={24} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => navigateProduct("next")}
+                                  className="hover:bg-stone-50 rounded-full"
+                                >
+                                  <ChevronRight size={24} />
+                                </Button>
+                              </div>
+                            </DialogContent>
                           </Dialog>
 
                           <CardContent className="p-4 flex-1 flex flex-col">
