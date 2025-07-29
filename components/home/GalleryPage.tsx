@@ -636,6 +636,40 @@ export default function GalleryPage() {
                                 </div>
                               </div>
                             </DialogTrigger>
+                            {/* Overlay with acciones - Desktop only, hidden on mobile */}
+                            <div
+                              className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300 hidden lg:block ${
+                                hoveredProduct === product.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              }`}
+                            >
+                              <div className="absolute bottom-4 left-4 right-4">
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-white/95 hover:bg-white text-stone-800 shadow-lg hover:shadow-xl transition-all font-medium touch-manipulation min-h-[44px] flex-shrink-0"
+                                  style={{
+                                    WebkitTapHighlightColor: "transparent",
+                                  }}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleAddToCart(product);
+                                  }}
+                                >
+                                  <ShoppingCart
+                                    size={14}
+                                    className="mr-2 flex-shrink-0"
+                                  />
+                                  <span className="flex-shrink-0">
+                                    Añadir al Carrito
+                                  </span>
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Simple hover overlay for mobile - no button */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 lg:hidden" />
 
                             <motion.div
                               key={product.id}
@@ -673,13 +707,46 @@ export default function GalleryPage() {
                                           </Badge>
                                         </div>
 
-                                        {/* Simple hover overlay - NO BUTTON */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:block" />
+                                        {/* Desktop overlay with button - hidden on mobile (lg:block) */}
+                                        <div
+                                          className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300 hidden lg:block ${
+                                            hoveredProduct === product.id
+                                              ? "opacity-100"
+                                              : "opacity-0"
+                                          }`}
+                                        >
+                                          <div className="absolute bottom-4 left-4 right-4">
+                                            <Button
+                                              size="sm"
+                                              className="w-full bg-white/95 hover:bg-white text-stone-800 shadow-lg hover:shadow-xl transition-all font-medium touch-manipulation min-h-[44px] flex-shrink-0"
+                                              style={{
+                                                WebkitTapHighlightColor:
+                                                  "transparent",
+                                              }}
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleAddToCart(product);
+                                              }}
+                                            >
+                                              <ShoppingCart
+                                                size={14}
+                                                className="mr-2 flex-shrink-0"
+                                              />
+                                              <span className="flex-shrink-0">
+                                                Añadir al Carrito
+                                              </span>
+                                            </Button>
+                                          </div>
+                                        </div>
+
+                                        {/* Mobile simple overlay - no button (block on mobile, hidden on desktop) */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 lg:hidden" />
                                       </div>
                                     </div>
                                   </DialogTrigger>
 
-                                  {/* Modal content remains the same - the button stays here */}
+                                  {/* Modal content remains exactly the same */}
                                   <DialogContent className="sm:max-w-6xl bg-white max-h-[90vh] overflow-y-auto">
                                     <DialogHeader>
                                       <DialogTitle className="text-3xl font-serif text-stone-800">
@@ -773,7 +840,7 @@ export default function GalleryPage() {
                                           </p>
                                         </div>
 
-                                        {/* BUTTON STAYS ONLY HERE IN THE MODAL */}
+                                        {/* Modal button with mobile fixes */}
                                         <div className="space-y-4">
                                           <Button
                                             className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white h-12 shadow-lg hover:shadow-xl transition-all font-medium touch-manipulation min-h-[48px] flex-shrink-0"
@@ -803,7 +870,7 @@ export default function GalleryPage() {
                                       </div>
                                     </div>
 
-                                    {/* Similar products section remains the same */}
+                                    {/* Similar products and navigation remain the same */}
                                     {similarProducts.length > 0 && (
                                       <div className="mt-8 border-t pt-8">
                                         <h3 className="text-xl font-serif text-stone-800 mb-4">
