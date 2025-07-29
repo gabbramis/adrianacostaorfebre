@@ -44,7 +44,10 @@ export default function CartDrawer() {
         <SheetHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b bg-gradient-to-r from-stone-50 to-stone-100 dark:from-zinc-800 dark:to-zinc-700 dark:border-zinc-700 flex-shrink-0">
           <SheetTitle className="flex items-center">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-stone-800 to-stone-700 dark:from-white dark:to-zinc-300 rounded-full flex items-center justify-center mr-2 sm:mr-3 shadow-sm">
-              <ShoppingBag className="text-white dark:text-zinc-900" size={16} />
+              <ShoppingBag
+                className="text-white dark:text-zinc-900"
+                size={16}
+              />
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-serif text-stone-800 dark:text-white">
@@ -63,7 +66,10 @@ export default function CartDrawer() {
         {state.items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6">
             <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-stone-100 to-stone-200 dark:from-zinc-800 dark:to-zinc-700 rounded-full flex items-center justify-center mb-4 sm:mb-6 shadow-inner">
-              <ShoppingCart className="text-stone-400 dark:text-zinc-400" size={32} />
+              <ShoppingCart
+                className="text-stone-400 dark:text-zinc-400"
+                size={32}
+              />
             </div>
             <h3 className="text-lg sm:text-xl font-serif mb-2 text-stone-800 dark:text-white">
               Tu carrito está vacío
@@ -72,11 +78,14 @@ export default function CartDrawer() {
               Descubre nuestra hermosa colección de joyería artesanal y
               encuentra la pieza perfecta para ti.
             </p>
-            <Link href="/galeria" onClick={closeCart}>
-              <Button className="bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base">
+            <Button
+              asChild
+              className="bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
+            >
+              <Link href="/galeria" onClick={closeCart}>
                 Explorar Productos
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         ) : (
           <>
@@ -197,8 +206,11 @@ export default function CartDrawer() {
               </div>
 
               {/* Botón de acción principal */}
-              <Link href="/carrito" onClick={closeCart}>
-                <Button className="w-full h-11 sm:h-12 bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group text-sm sm:text-base">
+              <Button
+                asChild
+                className="w-full h-11 sm:h-12 bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group text-sm sm:text-base"
+              >
+                <Link href="/carrito" onClick={closeCart}>
                   <span className="flex items-center justify-center">
                     Ver Carrito Completo
                     <ArrowRight
@@ -206,8 +218,8 @@ export default function CartDrawer() {
                       size={18}
                     />
                   </span>
-                </Button>
-              </Link>
+                </Link>
+              </Button>
 
               {/* Botón secundario */}
               <Button
