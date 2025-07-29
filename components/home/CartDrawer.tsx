@@ -18,8 +18,10 @@ import {
 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation"; // ← Cambiado para App Router
 
 export default function CartDrawer() {
+  const router = useRouter();
   const {
     state,
     closeCart,
@@ -35,6 +37,15 @@ export default function CartDrawer() {
       currency: "UYU",
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  // ← Función mejorada para manejar la navegación
+  const handleExploreProductsClick = () => {
+    closeCart();
+    // Pequeño delay para que el drawer se cierre antes de navegar
+    setTimeout(() => {
+      router.push("/galeria");
+    }, 200);
   };
 
   return (
@@ -78,11 +89,25 @@ export default function CartDrawer() {
               Descubre nuestra hermosa colección de joyería artesanal y
               encuentra la pieza perfecta para ti.
             </p>
-            <Link href="/galeria" onClick={closeCart}>
-              <Button className="bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base">
+
+            {/* ← SOLUCIÓN 1: Solo usar Button con onClick (recomendado para mobile) */}
+            <Button
+              className="bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
+              onClick={handleExploreProductsClick}
+            >
+              Explorar Productos
+            </Button>
+
+            {/* ← SOLUCIÓN 2 ALTERNATIVA: Solo usar Link sin onClick
+            <Link href="/galeria">
+              <Button
+                className="bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
+                onClick={closeCart}
+              >
                 Explorar Productos
               </Button>
             </Link>
+            */}
           </div>
         ) : (
           <>
@@ -202,9 +227,12 @@ export default function CartDrawer() {
                 </div>
               </div>
 
-              {/* Botón de acción principal */}
-              <Link href="/carrito" onClick={closeCart}>
-                <Button className="w-full h-11 sm:h-12 bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group text-sm sm:text-base">
+              {/* Botón de acción principal - ← También corregido */}
+              <Link href="/carrito">
+                <Button
+                  className="w-full h-11 sm:h-12 bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 dark:from-white dark:to-zinc-200 dark:text-black text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group text-sm sm:text-base"
+                  onClick={closeCart}
+                >
                   <span className="flex items-center justify-center">
                     Ver Carrito Completo
                     <ArrowRight
