@@ -634,31 +634,31 @@ export default function GalleryPage() {
                                     </Badge>
                                   </div>
 
-                                 {/* Overlay con acciones - Solo desktop */}
-<div
-  className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300 hidden sm:block ${
-    hoveredProduct === product.id
-      ? "opacity-100"
-      : "opacity-0"
-  }`}
->
-  <div className="absolute bottom-4 left-4 right-4">
-    <Button
-      size="sm"
-      className="w-full bg-white/95 hover:bg-white text-stone-800 shadow-lg hover:shadow-xl transition-all font-medium"
-      onClick={(e) => {
-        e.stopPropagation();
-        handleAddToCart(product);
-      }}
-    >
-      <ShoppingCart
-        size={14}
-        className="mr-2"
-      />
-      Añadir al Carrito
-    </Button>
-  </div>
-</div>
+                                  {/* Overlay con acciones - Solo desktop */}
+                                  <div
+                                    className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300 hidden sm:block ${
+                                      hoveredProduct === product.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    }`}
+                                  >
+                                    <div className="absolute bottom-4 left-4 right-4">
+                                      <Button
+                                        size="sm"
+                                        className="w-full bg-white/95 hover:bg-white text-stone-800 shadow-lg hover:shadow-xl transition-all font-medium"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddToCart(product);
+                                        }}
+                                      >
+                                        <ShoppingCart
+                                          size={14}
+                                          className="mr-2"
+                                        />
+                                        Añadir al Carrito
+                                      </Button>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </DialogTrigger>
@@ -752,13 +752,17 @@ export default function GalleryPage() {
                                     </p>
                                   </div>
 
-                                  <div className="flex gap-4">
+                                  {/* FIXED: Mobile-friendly Add to Cart button */}
+                                  <div className="flex flex-col sm:flex-row gap-4">
                                     <Button
-                                      className="flex-1 bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white h-12 shadow-lg hover:shadow-xl transition-all"
-                                      onClick={() =>
-                                        selectedProduct &&
-                                        handleAddToCart(selectedProduct)
-                                      }
+                                      className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white h-12 shadow-lg hover:shadow-xl transition-all touch-manipulation"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (selectedProduct) {
+                                          handleAddToCart(selectedProduct);
+                                        }
+                                      }}
                                     >
                                       <ShoppingCart
                                         className="mr-2"
