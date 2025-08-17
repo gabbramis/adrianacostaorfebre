@@ -32,7 +32,6 @@ import {
   Search,
   ShoppingCart,
   SlidersHorizontal,
-  Star,
   X,
   Sparkles,
   Package,
