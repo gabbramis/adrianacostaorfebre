@@ -54,10 +54,9 @@ type ProductCategory =
   | "llaveros"
   | "todos";
 
-type SortOption = "popular" | "recent" | "price-low" | "price-high" | "name";
+type SortOption = "recent" | "price-low" | "price-high" | "name";
 
 const sortOptions = [
-  { id: "popular", name: "Más populares" },
   { id: "recent", name: "Más recientes" },
   { id: "price-low", name: "Precio: menor a mayor" },
   { id: "price-high", name: "Precio: mayor a menor" },
@@ -98,7 +97,7 @@ export default function GalleryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<Producto[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [sortBy, setSortBy] = useState<SortOption>("popular");
+  const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [priceRange, setPriceRange] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
@@ -112,7 +111,11 @@ export default function GalleryPage() {
       try {
         setLoading(true);
         const supabase = createSupabaseClient();
-        const { data, error } = await supabase.from("products").select("*");
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("is_posted", true);
+
         if (error) {
           console.error("Error al cargar productos:", error);
         } else {
@@ -239,9 +242,6 @@ export default function GalleryPage() {
 
     // Ordenar productos
     switch (sortBy) {
-      case "popular":
-        filtered.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-        break;
       case "recent":
         filtered.sort(
           (a, b) =>
@@ -838,27 +838,6 @@ export default function GalleryPage() {
                               <h3 className="font-semibold text-base text-stone-800 mb-2 line-clamp-2">
                                 {product.name}
                               </h3>
-
-                              {product.popularity && (
-                                <div className="flex items-center space-x-2">
-                                  <div className="flex items-center">
-                                    {[...Array(5)].map((_, i) => (
-                                      <Star
-                                        key={i}
-                                        size={14}
-                                        className={
-                                          i < Math.floor(product.popularity!)
-                                            ? "text-yellow-400 fill-current"
-                                            : "text-stone-200"
-                                        }
-                                      />
-                                    ))}
-                                  </div>
-                                  <span className="text-xs text-stone-500">
-                                    ({product.popularity})
-                                  </span>
-                                </div>
-                              )}
 
                               {product.materials &&
                                 product.materials.length > 0 && (
