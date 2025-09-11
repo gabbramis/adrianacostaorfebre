@@ -13,7 +13,18 @@ export default function MainLayout({
       {children}
       <Footer />
       {process.env.NODE_ENV === "production" && (
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-MMWKS311JX" />
+        <>
+          <Script src="https://www.googletagmanager.com/gtag/js?id=G-MMWKS311JX" />
+          <Script id="gtag-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+
+              gtag('config', 'G-MMWKS311JX');
+            `}
+          </Script>
+        </>
       )}
     </>
   );
