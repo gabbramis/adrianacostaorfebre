@@ -51,6 +51,8 @@ type ProductCategory =
   | "marcalibros"
   | "prendedores"
   | "llaveros"
+  | "mates"
+  | "bombillas"
   | "todos";
 
 type SortOption = "recent" | "price-low" | "price-high" | "name";

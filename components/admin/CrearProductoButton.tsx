@@ -262,6 +262,8 @@ export default function CrearOEditarProductoDialog({
                 <SelectItem value="marcalibros">Marcalibros</SelectItem>
                 <SelectItem value="prendedores">Prendedores</SelectItem>
                 <SelectItem value="llaveros">Llaveros</SelectItem>
+                <SelectItem value="mates">Mates</SelectItem>
+                <SelectItem value="bombillas">Bombillas</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -334,8 +336,8 @@ export default function CrearOEditarProductoDialog({
                   ? "Guardando Cambios..."
                   : "Creando Producto..."
                 : productoInicial
-                ? "Guardar Cambios"
-                : "Crear Producto"}
+                  ? "Guardar Cambios"
+                  : "Crear Producto"}
             </Button>
           </DialogFooter>
         </form>
