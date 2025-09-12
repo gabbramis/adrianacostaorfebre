@@ -169,6 +169,16 @@ export default function GalleryPage() {
       name: "Llaveros",
       count: products.filter((p) => p.category === "llaveros").length,
     },
+    {
+      id: "mates",
+      name: "Mates",
+      count: products.filter((p) => p.category === "mates").length,
+    },
+    {
+      id: "bombillas",
+      name: "Bombillas",
+      count: products.filter((p) => p.category === "bombillas").length,
+    },
   ];
 
   // Obtener materiales únicos
