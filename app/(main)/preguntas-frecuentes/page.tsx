@@ -404,36 +404,6 @@ export default function PreguntasFrecuentesPage() {
                         eso ofrecemos una garantía que respalda la calidad de
                         nuestra artesanía y la pureza de los materiales.
                       </p>
-                      <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                              1
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                Joyas artesanales
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                1 año desde la compra
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                              30
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                Cadenitas
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                30 días (plata italiana 925)
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
                       <div className="space-y-2 text-sm text-gray-600">
                         <p>
                           <strong className="text-gray-900">

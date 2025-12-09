@@ -244,10 +244,10 @@ export default function CartPage() {
       promoCode: appliedPromo?.discount_code || "",
       promoDiscount: appliedPromo
         ? {
-            value: appliedPromo.value,
-            type: appliedPromo.discount_code_type,
-            discount_code: appliedPromo.discount_code,
-          }
+          value: appliedPromo.value,
+          type: appliedPromo.discount_code_type,
+          discount_code: appliedPromo.discount_code,
+        }
         : undefined,
       shippingCost: calculateShipping(),
       notes: customerInfo.notes,
@@ -271,8 +271,7 @@ export default function CartPage() {
             window.location.href = result.url;
           } else {
             alert(
-              `No se pudo generar el link de pago con Mercado Pago: ${
-                result?.error || "Error desconocido"
+              `No se pudo generar el link de pago con Mercado Pago: ${result?.error || "Error desconocido"
               }`
             );
             setIsProcessing(false);
@@ -481,19 +480,17 @@ export default function CartPage() {
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                      step <= currentStep
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${step <= currentStep
                         ? "bg-stone-800 text-white"
                         : "bg-gray-200 text-gray-500"
-                    }`}
+                      }`}
                   >
                     {step}
                   </div>
                   {step < 3 && (
                     <div
-                      className={`w-16 h-1 mx-2 transition-colors ${
-                        step < currentStep ? "bg-stone-800" : "bg-gray-200"
-                      }`}
+                      className={`w-16 h-1 mx-2 transition-colors ${step < currentStep ? "bg-stone-800" : "bg-gray-200"
+                        }`}
                     />
                   )}
                 </div>
@@ -586,9 +583,8 @@ export default function CartPage() {
                               onChange={(e) =>
                                 handleInputChange("email", e.target.value)
                               }
-                              className={`pl-10 ${
-                                errors.email ? "border-red-500" : ""
-                              }`}
+                              className={`pl-10 ${errors.email ? "border-red-500" : ""
+                                }`}
                               placeholder="tu@email.com"
                               translate="no"
                             />
@@ -614,9 +610,8 @@ export default function CartPage() {
                               onChange={(e) =>
                                 handleInputChange("phone", e.target.value)
                               }
-                              className={`pl-10 ${
-                                errors.phone ? "border-red-500" : ""
-                              }`}
+                              className={`pl-10 ${errors.phone ? "border-red-500" : ""
+                                }`}
                               placeholder="+598 99 123 456"
                               translate="no"
                             />
@@ -644,9 +639,8 @@ export default function CartPage() {
                               onChange={(e) =>
                                 handleInputChange("address", e.target.value)
                               }
-                              className={`pl-10 ${
-                                errors.address ? "border-red-500" : ""
-                              }`}
+                              className={`pl-10 ${errors.address ? "border-red-500" : ""
+                                }`}
                               placeholder="Calle, número, apartamento"
                               translate="no"
                             />
@@ -1006,8 +1000,7 @@ export default function CartPage() {
                                 Compra segura
                               </p>
                               <p className="text-sm text-green-700">
-                                Tus datos están protegidos y tu compra tiene
-                                garantía de 6 meses.
+                                Tus datos están protegidos
                               </p>
                             </div>
                           </div>
