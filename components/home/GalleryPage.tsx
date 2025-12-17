@@ -350,27 +350,23 @@ export default function GalleryPage() {
     return (
       <>
         <main>
-          <div className="bg-gradient-to-br from-stone-800 via-stone-700 to-stone-900 text-white py-20 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
-            <div className="container mx-auto px-4 text-center relative z-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-              >
-                <div className="flex items-center justify-center mb-6">
-                  <Sparkles className="text-stone-300 mr-3" size={32} />
-                  <h1 className="font-serif text-4xl md:text-6xl font-light tracking-wide">
-                    Galería de Productos
-                  </h1>
-                  <Sparkles className="text-stone-300 ml-3" size={32} />
-                </div>
-                <p className="text-lg md:text-xl max-w-3xl mx-auto text-stone-300 font-light leading-relaxed">
-                  Explora nuestra colección completa de joyería artesanal, cada
-                  pieza creada con pasión y dedicación en Uruguay.
-                </p>
-              </motion.div>
-            </div>
+          <div className="container mx-auto px-4 pt-4 pb-2 md:pt-8 md:pb-4">
+            <nav className="flex items-center text-sm text-stone-500 font-light translate-y-1">
+              <Link href="/" className="hover:text-stone-900 transition-colors">
+                Inicio
+              </Link>
+              <ChevronRight size={14} className="mx-2 text-stone-400" />
+              <span className="text-stone-900 font-medium">Galeria</span>
+            </nav>
+          </div>
+          <div className="container mx-auto px-4 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              {/* Optional: Minimal title if needed, or keeping it strictly breadcrumb only as requested */}
+            </motion.div>
           </div>
           <section className="py-20 bg-gradient-to-br from-stone-50 to-stone-100">
             <div className="container mx-auto px-4 text-center">
@@ -391,27 +387,15 @@ export default function GalleryPage() {
     <>
       <main>
         {/* Banner de la galería */}
-        <div className="bg-gradient-to-br from-stone-800 via-stone-700 to-stone-900 text-white py-20 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
-          <div className="container mx-auto px-4 text-center relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className="flex items-center justify-center mb-6">
-                <Sparkles className="text-stone-300 mr-3" size={32} />
-                <h1 className="font-serif text-4xl md:text-6xl font-light tracking-wide">
-                  Galería de Productos
-                </h1>
-                <Sparkles className="text-stone-300 ml-3" size={32} />
-              </div>
-              <p className="text-lg md:text-xl max-w-3xl mx-auto text-stone-300 font-light leading-relaxed">
-                Explora nuestra colección completa de joyería artesanal, cada
-                pieza creada con pasión y dedicación en Uruguay.
-              </p>
-            </motion.div>
-          </div>
+        {/* Breadcrumb Header */}
+        <div className="container mx-auto px-4 pt-8 pb-2 md:pt-8 md:pb-4">
+          <nav className="flex items-center text-sm text-stone-500 font-light translate-y-1">
+            <Link href="/" className="hover:text-stone-900 transition-colors">
+              Inicio
+            </Link>
+            <ChevronRight size={14} className="mx-2 text-stone-400" />
+            <span className="text-stone-900 font-medium">Galeria</span>
+          </nav>
         </div>
 
         {/* Contenido principal */}
@@ -925,29 +909,28 @@ export default function GalleryPage() {
         </section>
 
         {/* CTA */}
-        <section className="bg-gradient-to-r from-stone-800 to-stone-700 py-20 text-white">
+        <section className="py-20 border-t border-stone-100 mt-12 mb-0">
           <div className="container mx-auto px-4 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
+              className="max-w-xl mx-auto"
             >
-              <h2 className="text-3xl md:text-4xl font-serif mb-6">
-                ¿No encuentras lo que buscas?
+              <h2 className="text-2xl font-serif mb-4 text-stone-900">
+                ¿Buscas algo personalizado?
               </h2>
-              <p className="text-lg max-w-2xl mx-auto mb-8 text-stone-300 leading-relaxed">
-                Podemos crear una pieza personalizada especialmente para ti.
-                Contáctanos para discutir tus ideas y convertirlas en una joya
-                única.
+              <p className="text-stone-500 mb-8 leading-relaxed font-light text-base">
+                Creamos joyas únicas para momentos especiales.
               </p>
               <Button
                 asChild
-                className="bg-white text-stone-800 hover:bg-stone-100 px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all"
+                variant="outline"
+                className="border-stone-200 text-stone-600 hover:border-stone-900 hover:text-stone-900 px-8 py-2 h-10 rounded-full transition-all duration-300 text-xs tracking-widest uppercase bg-transparent"
               >
                 <Link href="/contacto">
-                  <Sparkles className="mr-2" size={20} />
-                  Solicitar Diseño Personalizado
+                  Contactar
                 </Link>
               </Button>
             </motion.div>
