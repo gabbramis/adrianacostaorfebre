@@ -10,7 +10,7 @@ export default function ProductSection() {
         "Inspirada en las formas orgánicas y la belleza de la naturaleza uruguaya.",
       image: "/producto-4.jpg",
       alt: "Caravanas de la Colección Naturaleza",
-      link: "/galeria",
+      link: "/galeria?categoria=caravanas",
       buttonText: "Ver Caravanas",
     },
     {
@@ -19,7 +19,7 @@ export default function ProductSection() {
         "Diseños en plata y piedras naturales que evocan la armonía y fuerza de la naturaleza uruguaya.",
       image: "/producto-6.jpg",
       alt: "Colgantes artesanales en plata",
-      link: "/galeria",
+      link: "/galeria?categoria=colgantes",
       buttonText: "Ver Colgantes",
     },
     {
@@ -28,7 +28,7 @@ export default function ProductSection() {
         "Diseños en plata y piedras naturales que reflejan la belleza orgánica de la naturaleza uruguaya.",
       image: "/producto-1.jpg",
       alt: "Anillos artesanales únicos",
-      link: "/galeria",
+      link: "/galeria?categoria=anillos",
       buttonText: "Ver Anillos",
     },
   ];
@@ -81,7 +81,7 @@ export default function ProductSection() {
                 <Link href={collection.link} className="w-full">
                   <Button
                     variant="outline"
-                    className="w-full border-stone-200 text-stone-700 hover:bg-black hover:border-black hover:text-black transition-all duration-300 py-2.5"
+                    className="w-full border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300 hover:text-stone-900 transition-all duration-300 py-2.5 cursor-pointer"
                   >
                     {collection.buttonText}
                   </Button>
@@ -96,7 +96,7 @@ export default function ProductSection() {
           <Link href="/galeria">
             <Button
               variant="ghost"
-              className="text-black hover:text-black hover:bg-black text-base md:text-lg font-medium px-8 py-3 transition-all duration-300"
+              className="text-stone-900 hover:bg-stone-100 hover:text-stone-900 hover:underline text-base md:text-lg font-medium px-8 py-3 transition-all duration-300 cursor-pointer"
             >
               Ver toda la galería
               <span className="ml-2 inline-block transition-transform group-hover:translate-x-1">

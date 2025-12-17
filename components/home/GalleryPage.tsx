@@ -186,11 +186,25 @@ export default function GalleryPage() {
     new Set(products.flatMap((p) => p.materials || []))
   );
 
-  // Obtener término de búsqueda de la URL si existe
+  // Obtener término de búsqueda y categoría de la URL si existen
   useEffect(() => {
     const querySearch = searchParams.get("buscar");
+    const queryCategory = searchParams.get("categoria");
+
     if (querySearch) {
       setSearchTerm(querySearch);
+    }
+
+    if (queryCategory) {
+      // Validar si la categoría es válida antes de asignarla
+      const validCategories: ProductCategory[] = [
+        "anillos", "colgantes", "pulseras", "caravanas",
+        "marcalibros", "prendedores", "llaveros", "mates", "bombillas", "todos"
+      ];
+
+      if (validCategories.includes(queryCategory as ProductCategory)) {
+        setSelectedCategory(queryCategory as ProductCategory);
+      }
     }
   }, [searchParams]);
 
@@ -443,9 +457,8 @@ export default function GalleryPage() {
                     <Filter className="mr-2" size={18} />
                     Filtros
                     <ChevronDown
-                      className={`ml-2 transition-transform ${
-                        showFilters ? "rotate-180" : ""
-                      }`}
+                      className={`ml-2 transition-transform ${showFilters ? "rotate-180" : ""
+                        }`}
                       size={18}
                     />
                   </Button>
@@ -453,9 +466,8 @@ export default function GalleryPage() {
 
                 {/* Filtros */}
                 <div
-                  className={`space-y-6 ${
-                    showFilters ? "block" : "hidden lg:block"
-                  }`}
+                  className={`space-y-6 ${showFilters ? "block" : "hidden lg:block"
+                    }`}
                 >
                   {/* Categorías */}
                   <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
@@ -475,20 +487,18 @@ export default function GalleryPage() {
                                 category.id as ProductCategory
                               )
                             }
-                            className={`w-full text-left p-3 rounded-lg transition-all duration-200 flex justify-between items-center ${
-                              selectedCategory === category.id
-                                ? "bg-gradient-to-r from-stone-800 to-stone-700 text-white shadow-md"
-                                : "hover:bg-stone-50 text-stone-700 border border-stone-200"
-                            }`}
+                            className={`w-full text-left p-3 rounded-lg transition-all duration-200 flex justify-between items-center ${selectedCategory === category.id
+                              ? "bg-gradient-to-r from-stone-800 to-stone-700 text-white shadow-md"
+                              : "hover:bg-stone-50 text-stone-700 border border-stone-200"
+                              }`}
                           >
                             <span className="font-medium">{category.name}</span>
                             <Badge
                               variant="secondary"
-                              className={`text-xs ${
-                                selectedCategory === category.id
-                                  ? "bg-white text-stone-800"
-                                  : "bg-stone-100 text-stone-600"
-                              }`}
+                              className={`text-xs ${selectedCategory === category.id
+                                ? "bg-white text-stone-800"
+                                : "bg-stone-100 text-stone-600"
+                                }`}
                             >
                               {category.count}
                             </Badge>
@@ -512,11 +522,10 @@ export default function GalleryPage() {
                           <button
                             key={range.id}
                             onClick={() => setPriceRange(range.id)}
-                            className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
-                              priceRange === range.id
-                                ? "bg-gradient-to-r from-stone-800 to-stone-700 text-white shadow-md"
-                                : "hover:bg-stone-50 text-stone-700 border border-stone-200"
-                            }`}
+                            className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${priceRange === range.id
+                              ? "bg-gradient-to-r from-stone-800 to-stone-700 text-white shadow-md"
+                              : "hover:bg-stone-50 text-stone-700 border border-stone-200"
+                              }`}
                           >
                             <span className="font-medium">{range.name}</span>
                           </button>
@@ -647,11 +656,10 @@ export default function GalleryPage() {
 
                                   {/* Overlay con acciones - Solo desktop */}
                                   <div
-                                    className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300 hidden sm:block ${
-                                      hoveredProduct === product.id
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    }`}
+                                    className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300 hidden sm:block ${hoveredProduct === product.id
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                      }`}
                                   >
                                     <div className="absolute bottom-4 left-4 right-4">
                                       <Button
@@ -686,7 +694,7 @@ export default function GalleryPage() {
                                 {/* SECCIÓN DE IMÁGENES */}
                                 <div className="relative">
                                   {selectedProduct?.image &&
-                                  selectedProduct.image.length > 0 ? (
+                                    selectedProduct.image.length > 0 ? (
                                     <Carousel className="w-full">
                                       <CarouselContent>
                                         {selectedProduct.image.map(
@@ -697,9 +705,8 @@ export default function GalleryPage() {
                                                   src={
                                                     url || "/placeholder.svg"
                                                   }
-                                                  alt={`${
-                                                    selectedProduct.name
-                                                  } - Imagen ${index + 1}`}
+                                                  alt={`${selectedProduct.name
+                                                    } - Imagen ${index + 1}`}
                                                   className="w-full h-full object-cover"
                                                 />
                                               </div>
