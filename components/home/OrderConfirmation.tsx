@@ -10,6 +10,7 @@ interface OrderConfirmationProps {
   paymentMethod: "mercadopago" | "transfer";
   confirmedOrderTotal: number;
   formatPrice: (price: number) => string;
+  department?: string;
 }
 
 const OrderConfirmation = ({
@@ -18,6 +19,7 @@ const OrderConfirmation = ({
   paymentMethod,
   confirmedOrderTotal,
   formatPrice,
+  department,
 }: OrderConfirmationProps) => {
   return (
     <>
@@ -84,7 +86,9 @@ const OrderConfirmation = ({
                   <span className="font-medium text-gray-700">
                     {deliveryMethod === "pickup"
                       ? "Retiro en taller"
-                      : "Envío a domicilio"}
+                      : department === "Montevideo"
+                        ? "Envío a domicilio"
+                        : "Envío por DAC (A cobrar en destino)"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1">

@@ -23,6 +23,7 @@ export interface CustomerInfo {
   phone: string;
   address: string; // This should be broken down into specific address fields later
   city: string;
+  department?: string;
   postalCode: string;
   notes: string; // This is a general customer note, not order-specific
 }
@@ -83,7 +84,9 @@ export async function createOrder(orderData: OrderData) {
           email: orderData.customerInfo.email,
           phone: orderData.customerInfo.phone,
           address: orderData.customerInfo.address, // Consider breaking this into more fields later
-          city: orderData.customerInfo.city,
+          city: orderData.customerInfo.department
+            ? `${orderData.customerInfo.city}, ${orderData.customerInfo.department}`
+            : orderData.customerInfo.city,
           postal_code: orderData.customerInfo.postalCode,
           notes: orderData.customerInfo.notes, // This is now a customer-specific note
           // Add other customer-specific fields as per your 'clientes' table schema

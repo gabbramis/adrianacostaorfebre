@@ -11,6 +11,13 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useEffect, useState, useCallback } from "react";
 import {
   ShoppingBag,
@@ -40,9 +47,32 @@ interface CustomerInfo {
   phone: string;
   address: string;
   city: string;
+  department: string;
   postalCode: string;
   notes: string;
 }
+
+const URUGUAY_DEPARTMENTS = [
+  "Artigas",
+  "Canelones",
+  "Cerro Largo",
+  "Colonia",
+  "Durazno",
+  "Flores",
+  "Florida",
+  "Lavalleja",
+  "Maldonado",
+  "Montevideo",
+  "Paysandú",
+  "Río Negro",
+  "Rivera",
+  "Rocha",
+  "Salto",
+  "San José",
+  "Soriano",
+  "Tacuarembó",
+  "Treinta y Tres",
+];
 
 const useTranslationFix = () => {
   const [isTranslated, setIsTranslated] = useState(false);
@@ -97,6 +127,7 @@ export default function CartPage() {
     phone: "",
     address: "",
     city: "",
+    department: "",
     postalCode: "",
     notes: "",
   });
@@ -145,7 +176,11 @@ export default function CartPage() {
   };
 
   const calculateShipping = () => {
-    return deliveryMethod === "pickup" ? 0 : getShipping();
+    if (deliveryMethod === "pickup") return 0;
+
+    // Si es Montevideo, cobra envío normal (270)
+    // Si no es Montevideo, es "A cobrar en destino" (0) pero con mensaje diferente
+    return customerInfo.department === "Montevideo" ? getShipping() : 0;
   };
 
   // Funciones para códigos de descuento
@@ -334,6 +369,10 @@ export default function CartPage() {
       if (!(customerInfo.city || "").trim()) {
         newErrors.city = "La ciudad es obligatoria";
       }
+
+      if (!customerInfo.department) {
+        newErrors.department = "El departamento es obligatorio";
+      }
     }
 
     return {
@@ -440,6 +479,7 @@ export default function CartPage() {
         paymentMethod={paymentMethod}
         confirmedOrderTotal={confirmedOrderTotal}
         formatPrice={formatPrice}
+        department={customerInfo.department}
       />
     );
   }
@@ -481,8 +521,8 @@ export default function CartPage() {
                 <div key={step} className="flex items-center">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${step <= currentStep
-                        ? "bg-stone-800 text-white"
-                        : "bg-gray-200 text-gray-500"
+                      ? "bg-stone-800 text-white"
+                      : "bg-gray-200 text-gray-500"
                       }`}
                   >
                     {step}
@@ -655,6 +695,32 @@ export default function CartPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
+                            <Label htmlFor="department">
+                              Departamento {deliveryMethod === "shipping" && "*"}
+                            </Label>
+                            <Select
+                              value={customerInfo.department}
+                              onValueChange={(value) => handleInputChange("department", value)}
+                            >
+                              <SelectTrigger className={errors.department ? "border-red-500" : ""}>
+                                <SelectValue placeholder="Selecciona un departamento" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {URUGUAY_DEPARTMENTS.map((dept) => (
+                                  <SelectItem key={dept} value={dept}>
+                                    {dept}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {errors.department && (
+                              <p className="text-red-500 text-sm mt-1 flex items-center">
+                                <AlertCircle size={14} className="mr-1" />
+                                {errors.department}
+                              </p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
                             <Label htmlFor="city">
                               Ciudad {deliveryMethod === "shipping" && "*"}
                             </Label>
@@ -665,7 +731,7 @@ export default function CartPage() {
                                 handleInputChange("city", e.target.value)
                               }
                               className={errors.city ? "border-red-500" : ""}
-                              placeholder="Montevideo"
+                              placeholder="Tu ciudad"
                               translate="no"
                             />
                             {errors.city && (
@@ -675,18 +741,18 @@ export default function CartPage() {
                               </p>
                             )}
                           </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="postalCode">Código Postal</Label>
-                            <Input
-                              id="postalCode"
-                              value={customerInfo.postalCode}
-                              onChange={(e) =>
-                                handleInputChange("postalCode", e.target.value)
-                              }
-                              placeholder="11000"
-                              translate="no"
-                            />
-                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="postalCode">Código Postal</Label>
+                          <Input
+                            id="postalCode"
+                            value={customerInfo.postalCode}
+                            onChange={(e) =>
+                              handleInputChange("postalCode", e.target.value)
+                            }
+                            placeholder="11000"
+                            translate="no"
+                          />
                         </div>
 
                         <div className="space-y-2">
@@ -750,20 +816,23 @@ export default function CartPage() {
                                       Envío a domicilio
                                     </p>
                                     <p className="text-sm text-gray-600">
-                                      Recibe tu pedido en la comodidad de tu
-                                      hogar
+                                      {customerInfo.department === "Montevideo"
+                                        ? "Recibe tu pedido en la comodidad de tu hogar"
+                                        : "Envío por agencia DAC (a cobrar en destino)"}
                                     </p>
                                   </div>
                                 </Label>
                               </div>
                               <div className="text-right">
                                 <p className="font-medium">
-                                  {getShipping() === 0
-                                    ? "Gratis"
-                                    : formatPrice(getShipping())}
+                                  {calculateShipping() === 0
+                                    ? customerInfo.department === "Montevideo"
+                                      ? "Gratis"
+                                      : <span className="text-sm text-stone-600">A cobrar en destino</span>
+                                    : formatPrice(calculateShipping())}
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                  3-5 días hábiles
+                                  {customerInfo.department === "Montevideo" ? "24-48 hs" : null}
                                 </p>
                               </div>
                             </div>
@@ -801,6 +870,7 @@ export default function CartPage() {
                             </div>
                           </div>
                         </RadioGroup>
+
                       </CardContent>
                     </Card>
 
