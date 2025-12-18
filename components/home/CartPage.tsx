@@ -1234,12 +1234,18 @@ export default function CartPage() {
                         <span
                           className={
                             calculateShipping() === 0
-                              ? "text-green-600 font-medium"
+                              ? deliveryMethod === "shipping" &&
+                                customerInfo.department !== "Montevideo"
+                                ? "text-stone-600 font-medium text-xs whitespace-nowrap"
+                                : "text-green-600 font-medium"
                               : ""
                           }
                         >
                           {calculateShipping() === 0
-                            ? "Gratis"
+                            ? deliveryMethod === "shipping" &&
+                              customerInfo.department !== "Montevideo"
+                              ? "A cobrar en destino"
+                              : "Gratis"
                             : formatPrice(calculateShipping())}
                         </span>
                       </div>
