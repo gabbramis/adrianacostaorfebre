@@ -684,14 +684,14 @@ export default function GalleryPage() {
                                         {selectedProduct.image.map(
                                           (url, index) => (
                                             <CarouselItem key={index}>
-                                              <div className="relative w-full h-96 bg-stone-50 overflow-hidden rounded-xl">
+                                              <div className="relative w-full h-[300px] md:h-[500px] bg-stone-50 overflow-hidden rounded-xl flex items-center justify-center">
                                                 <img
                                                   src={
                                                     url || "/placeholder.svg"
                                                   }
                                                   alt={`${selectedProduct.name
                                                     } - Imagen ${index + 1}`}
-                                                  className="w-full h-full object-cover"
+                                                  className="w-full h-full object-contain mix-blend-multiply"
                                                 />
                                               </div>
                                             </CarouselItem>
@@ -706,11 +706,11 @@ export default function GalleryPage() {
                                       )}
                                     </Carousel>
                                   ) : (
-                                    <div className="w-full h-96 bg-stone-50 flex items-center justify-center rounded-xl">
+                                    <div className="w-full h-[300px] md:h-[500px] bg-stone-50 flex items-center justify-center rounded-xl">
                                       <img
                                         src="/placeholder.svg?height=400&width=400"
                                         alt="Imagen no disponible"
-                                        className="w-full h-full object-cover rounded-xl"
+                                        className="w-full h-full object-contain rounded-xl opacity-50"
                                       />
                                     </div>
                                   )}
