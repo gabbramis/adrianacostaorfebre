@@ -757,7 +757,7 @@ export default function GalleryPage() {
                                   {/* FIXED: Mobile-friendly Add to Cart button */}
                                   <div className="flex flex-col sm:flex-row gap-4">
                                     <Button
-                                      className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white h-12 shadow-lg hover:shadow-xl transition-all touch-manipulation"
+                                      className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white h-12 min-h-[48px] shadow-lg hover:shadow-xl transition-all touch-manipulation flex-shrink-0"
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
@@ -767,10 +767,10 @@ export default function GalleryPage() {
                                       }}
                                     >
                                       <ShoppingCart
-                                        className="mr-2"
+                                        className="mr-2 flex-shrink-0"
                                         size={16}
                                       />
-                                      Añadir al Carrito
+                                      <span className="whitespace-nowrap">Añadir al Carrito</span>
                                     </Button>
                                   </div>
                                 </div>
@@ -873,25 +873,6 @@ export default function GalleryPage() {
                               <p className="text-xl font-serif text-stone-800">
                                 {formatPrice(product.price)}
                               </p>
-                            </div>
-
-                            {/* Mobile-only Add to Cart Button */}
-                            <div className="sm:hidden mt-3">
-                              <Button
-                                size="sm"
-                                className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white shadow-md hover:shadow-lg transition-all touch-manipulation flex-shrink-0 min-h-[40px] h-10"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleAddToCart(product);
-                                }}
-                              >
-                                <ShoppingCart
-                                  size={14}
-                                  className="mr-2 flex-shrink-0"
-                                />
-                                <span className="whitespace-nowrap">Añadir al Carrito</span>
-                              </Button>
                             </div>
                           </CardContent>
                         </Card>
