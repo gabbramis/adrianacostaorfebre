@@ -874,6 +874,25 @@ export default function GalleryPage() {
                                 {formatPrice(product.price)}
                               </p>
                             </div>
+
+                            {/* Mobile-only Add to Cart Button */}
+                            <div className="sm:hidden mt-3">
+                              <Button
+                                size="sm"
+                                className="w-full bg-gradient-to-r from-stone-800 to-stone-700 hover:from-stone-700 hover:to-stone-600 text-white shadow-md hover:shadow-lg transition-all touch-manipulation flex-shrink-0 min-h-[40px] h-10"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleAddToCart(product);
+                                }}
+                              >
+                                <ShoppingCart
+                                  size={14}
+                                  className="mr-2 flex-shrink-0"
+                                />
+                                <span className="whitespace-nowrap">Añadir al Carrito</span>
+                              </Button>
+                            </div>
                           </CardContent>
                         </Card>
                       </motion.div>
