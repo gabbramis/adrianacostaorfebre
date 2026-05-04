@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "@/contexts/cart-context";
 import CartDrawer from "@/components/home/CartDrawer";
+import { FacebookPixel } from "@/components/analytics/FacebookPixel";
 
 export const metadata: Metadata = {
   title:
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="es" translate="no">
       <body className={`antialiased`}>
+        <FacebookPixel />
         <CartProvider>
           {children}
           <CartDrawer />
